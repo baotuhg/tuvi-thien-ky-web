@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tử Vi Đẩu Số Thiên Kỷ — Hệ Thống Mệnh Bàn & Khảm Bàn (Đại Sư Nghê Hải Hạ)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+    body {
+      font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #172036 0%, #090c14 72%);
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(4, minmax(175px, auto));
+      gap: 6px;
+      position: relative;
+    }
+    .center-palace {
+      grid-column: 2 / 4;
+      grid-row: 2 / 4;
+      background: linear-gradient(145deg, #131926 0%, #0d111a 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+      z-index: 5;
+      box-shadow: inset 0 0 30px rgba(245, 158, 11, 0.06);
+    }
+    .palace-cell {
+      background: #131824;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .palace-cell:hover {
+      border-color: rgba(245, 158, 11, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+    .palace-cell.active-main {
+      background: linear-gradient(145deg, rgba(245, 158, 11, 0.16), rgba(19, 24, 36, 0.95));
+      border: 2px solid #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.28);
+    }
+    .palace-cell.active-opposite {
+      border: 1.5px solid #f43f5e;
+      background: linear-gradient(145deg, rgba(244, 63, 94, 0.10), rgba(19, 24, 36, 0.95));
+    }
+    .palace-cell.active-trine {
+      border: 1.5px dashed #fbbf24;
+      background: linear-gradient(145deg, rgba(251, 191, 36, 0.08), rgba(19, 24, 36, 0.95));
+    }
+    .palace-cell.active-clamp {
+      border: 1.5px dotted #10b981;
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.07), rgba(19, 24, 36, 0.95));
+    }
+    #svg-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+    }
+    .badge-hoa-loc { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.45); }
+    .badge-hoa-quyen { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.45); }
+    .badge-hoa-khoa { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.45); }
+    .badge-hoa-ky { background: rgba(244, 63, 94, 0.22); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.5); }
+  </style>
+</head>
+<body class="pb-16">
+  <!-- HEADER -->
+  <header class="border-b border-amber-500/20 bg-slate-950/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center font-extrabold text-slate-950 text-lg shadow-lg shadow-amber-500/20">
+          天紀
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-amber-300">
+              TỬ VI ĐẨU SỐ THIÊN KỶ
+            </h1>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">
+              Open Source • Nghê Hải Hạ Methodology
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Hệ thống An Sao, Khảm Bàn Hợp Tuổi (Heming) & Phong Thủy Dương Trạch Cửu Cung (Địa Kỷ)
+          </p>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <div class="flex flex-wrap gap-1.5" id="main-nav">
+        <button onclick="switchMainTab('family')" id="tab-btn-family" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow transition">
+          👨‍👩‍👧‍👦 1. Hồ Sơ Đương Số
+        </button>
+        <button onclick="switchMainTab('chart')" id="tab-btn-chart" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          🌌 2. Lá Số 12 Cung & Tia Chiếu
+        </button>
+        <button onclick="switchMainTab('kham-ban')" id="tab-btn-kham-ban" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          💞 3. Khảm Bàn Hợp Tuổi (Heming)
+        </button>
+        <button onclick="switchMainTab('duong-trach')" id="tab-btn-duong-trach" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          🧭 4. Phong Thủy Dương Trạch (Địa Kỷ)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
+    <!-- TAB 1: DANH SÁCH HỒ SƠ & THÊM THÀNH VIÊN -->
+    <section id="sec-family" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Cột trái: Danh sách hồ sơ -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-amber-300 flex items-center gap-2">
+              <span>📋 Danh Sách Hồ Sơ Đang Quản Lý</span>
+              <span id="member-count-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0 hồ sơ</span>
+            </h3>
+            <div class="flex gap-2">
+              <button onclick="resetDefaultProfiles()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-amber-300 border border-slate-700">
+                🔄 Nạp Hồ Sơ Mẫu
+              </button>
+              <button onclick="exportFamilyJSON()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
+                💾 Xuất JSON
+              </button>
+              <label class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 cursor-pointer">
+                📂 Nạp JSON <input type="file" accept=".json" onchange="importFamilyJSON(event)" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div id="family-list-container" class="space-y-3"></div>
+        </div>
+
+        <!-- Cột phải: Form thêm hồ sơ mới -->
+        <div class="lg:col-span-5">
+          <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl sticky top-20">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="text-base font-extrabold text-emerald-300 flex items-center gap-2">
+                ➕ Thêm Hồ Sơ Mới Để Lập Lá Số
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Dữ liệu được lưu trữ hoàn toàn bảo mật trên trình duyệt của bạn (LocalStorage), không gửi về máy chủ trung gian.
+              </p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block text-slate-300 font-semibold mb-1">Họ và tên đương số:</label>
+                <input id="inp-name" type="text" placeholder="Ví dụ: Đương số A, Nguyễn Văn X..."
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Phân loại / Vai trò:</label>
+                  <select id="inp-relation" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500">
+                    <option value="Bản thân (Chủ hộ)">👑 Bản thân (Chủ hộ)</option>
+                    <option value="Vợ / Phối ngẫu">💍 Vợ / Phối ngẫu</option>
+                    <option value="Con trai (Trưởng nam)">👦 Con trai (Trưởng nam)</option>
+                    <option value="Con trai (Thứ/Út nam)">👦 Con trai (Thứ / Út nam)</option>
+                    <option value="Con gái (Trưởng nữ)">👧 Con gái (Trưởng nữ)</option>
+                    <option value="Con gái (Thứ/Út nữ)">👧 Con gái (Thứ / Út nữ)</option>
+                    <option value="Bố (Phụ thân)">👴 Bố (Phụ thân)</option>
+                    <option value="Mẹ (Mẫu thân)">👵 Mẹ (Mẫu thân)</option>
+                    <option value="Anh / Chị / Em">🤝 Anh / Chị / Em ruột</option>
+                    <option value="Đối tác / Khác">💼 Đối tác / Bạn bè</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Giới tính:</label>
+                  <select id="inp-gender" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-500">
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-slate-300 font-semibold">Loại lịch & Ngày tháng năm sinh:</label>
+                  <div class="inline-flex p-0.5 rounded-lg bg-slate-950 border border-slate-700">
+                    <button type="button" id="btn-cal-solar" onclick="setCalMode('solar')" class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-bold">☀️ Dương lịch</button>
+                    <button type="button" id="btn-cal-lunar" onclick="setCalMode('lunar')" class="px-2.5 py-0.5 rounded text-slate-400">🌙 Âm lịch</button>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <span class="text-[10px] text-slate-400">Ngày (1–31)</span>
+                    <input id="inp-day" type="number" min="1" max="31" value="15" class="w-full px-2 py-2 rounded-lg bg-slate-950 border border-slate-700 text-center text-white font-bold" />
+                  </div>
+                  <div>
+                    <span class="text-[10px] text-slate-400">Tháng (1–12)</span>
+                    <input id="inp-month" type="number" min="1" max="12" value="8" class="w-full px-2 py-2 rounded-lg bg-slate-950 border border-slate-700 text-center text-white font-bold" />
+                  </div>
+                  <div>
+                    <span class="text-[10px] text-slate-400">Năm sinh</span>
+                    <input id="inp-year" type="number" min="1920" max="2035" value="1995" class="w-full px-2 py-2 rounded-lg bg-slate-950 border border-slate-700 text-center text-white font-bold" />
+                  </div>
+                </div>
+                <div id="lunar-leap-box" class="hidden mt-1.5 flex items-center justify-between text-[11px] text-purple-300">
+                  <span>Nếu sinh vào tháng nhuận Âm lịch:</span>
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input id="inp-leap" type="checkbox" class="rounded accent-purple-500" />
+                    <span>Tháng nhuận</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Giờ sinh (12 Địa Chi):</label>
+                  <select id="inp-hour-chi" class="w-full px-2.5 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white">
+                    <option value="0">Giờ Tý (23h - 01h)</option>
+                    <option value="1">Giờ Sửu (01h - 03h)</option>
+                    <option value="2">Giờ Dần (03h - 05h)</option>
+                    <option value="3">Giờ Mão (05h - 07h)</option>
+                    <option value="4">Giờ Thìn (07h - 09h)</option>
+                    <option value="5">Giờ Tỵ (09h - 11h)</option>
+                    <option value="6">Giờ Ngọ (11h - 13h)</option>
+                    <option value="7">Giờ Mùi (13h - 15h)</option>
+                    <option value="8" selected>Giờ Thân (15h - 17h)</option>
+                    <option value="9">Giờ Dậu (17h - 19h)</option>
+                    <option value="10">Giờ Tuất (19h - 21h)</option>
+                    <option value="11">Giờ Hợi (21h - 23h)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Nơi sinh (Tỉnh thành):</label>
+                  <input id="inp-location" type="text" value="Hà Nội" placeholder="Hà Nội, TP.HCM, Đà Nẵng..."
+                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white" />
+                </div>
+              </div>
+
+              <div class="pt-2 flex flex-col gap-2">
+                <button onclick="addAndOpenMember()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 transition">
+                  ⚡ Lưu Hồ Sơ & Lập Lá Số 12 Cung Ngay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BÀN TỬ VI 12 CUNG TƯƠNG TÁC & LUẬN GIẢI -->
+    <section id="sec-chart" class="hidden space-y-6">
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-bold text-amber-300">👤 Đang xem lá số của:</span>
+          <select id="sel-active-member" onchange="viewMemberChart(this.value)" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-amber-500/50 text-white text-xs font-bold"></select>
+          <span id="active-member-relation-badge" class="text-xs px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold"></span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-400">Năm xem Hạn (Lưu Niên):</span>
+          <select id="sel-view-year" onchange="changeViewYear(this.value)" class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 text-xs font-bold">
+            <option value="2024">2024 (Giáp Thìn)</option>
+            <option value="2025">2025 (Ất Tỵ)</option>
+            <option value="2026" selected>2026 (Bính Ngọ)</option>
+            <option value="2027">2027 (Đinh Mùi)</option>
+            <option value="2028">2028 (Mậu Thân)</option>
+            <option value="2029">2029 (Kỷ Dậu)</option>
+            <option value="2030">2030 (Canh Tuất)</option>
+            <option value="2031">2031 (Tân Hợi)</option>
+            <option value="2032">2032 (Nhâm Tý)</option>
+          </select>
+          <button onclick="copyCliCommandForActive()" class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold">
+            📋 Copy Lệnh Trích Xuất CLI 56.6 GB
+          </button>
+        </div>
+      </div>
+
+      <!-- LÁ SỐ 12 CUNG + CHI TIẾT CUNG -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div class="xl:col-span-8">
+          <div class="chart-grid" id="chart-grid">
+            <svg id="svg-overlay"></svg>
+          </div>
+        </div>
+
+        <!-- Panel Chi Tiết Cung Đang Chọn -->
+        <div class="xl:col-span-4 space-y-4">
+          <div id="palace-detail-box" class="p-5 rounded-2xl bg-slate-900/95 border border-amber-500/30 space-y-4 shadow-xl sticky top-20"></div>
+        </div>
+      </div>
+
+      <!-- BẢN LUẬN GIẢI TỰ ĐỘNG TOÀN BÀN -->
+      <div class="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-lg font-extrabold text-amber-300">📜 Tổng Luận Mệnh Bàn & Đại Vận — Động Cơ Thiên Kỷ</h3>
+            <p class="text-xs text-slate-400">Phân tích tự động Mệnh Cục, Sự Nghiệp, Tài Bạch, Hôn Nhân và Vận Hạn Lưu Niên</p>
+          </div>
+        </div>
+        <div id="auto-analysis-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: KHẢM BÀN HỢP TUỔI GIA ĐÌNH -->
+    <section id="sec-kham-ban" class="hidden space-y-6">
+      <div class="p-6 rounded-2xl bg-slate-900/90 border border-rose-500/30 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-black text-rose-300">💞 Khảm Bàn Tử Vi (Thuật So Kèo Hòa Hợp & Tứ Hóa Phi Cung)</h2>
+            <p class="text-xs text-slate-400">
+              Đặt 2 lá số song song theo phương pháp Khảm Bàn của Đại Sư Nghê Hải Hạ: Ngũ Hành (25đ) + Địa Chi (25đ) + Cung Vị (25đ) + Tứ Hóa Phi Cung (25đ) = 100 điểm.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setKhamMode('love')" id="kham-mode-love" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white">
+              💍 Vợ Chồng & Tình Duyên
+            </button>
+            <button onclick="setKhamMode('parent_child')" id="kham-mode-parent_child" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300">
+              👶 Cha Mẹ & Con Cái
+            </button>
+            <button onclick="setKhamMode('business')" id="kham-mode-business" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300">
+              💼 Anh Em & Hợp Tác Làm Ăn
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-rose-300">👤 Đương Số Thứ Nhất (Bên A):</label>
+            <select id="sel-kham-p1" onchange="runKhamBan()" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold"></select>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-amber-300">👤 Đương Số Thứ Hai (Bên B):</label>
+            <select id="sel-kham-p2" onchange="runKhamBan()" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold"></select>
+          </div>
+        </div>
+
+        <div id="kham-ban-result-box" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: PHONG THỦY DƯƠNG TRẠCH CỬU CUNG (ĐỊA KỶ NGHÊ HẢI HẠ) -->
+    <section id="sec-duong-trach" class="hidden space-y-6">
+      <div class="p-6 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-5">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">《Thiên Kỷ • Địa Kỷ • Nhân Gian Đạo》 — Đại Sư Nghê Hải Hạ</span>
+          <h2 class="text-xl font-black text-white mt-1">
+            🧭 Đồ Hình Bố Trí Phòng Ngủ Gia Đình Theo Cửu Cung Bát Quái (Dương Trạch Tam Yếu Nghê Thị)
+          </h2>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+            Đại sư Nghê Hải Hạ chỉ rõ: <strong>"Mệnh lý là Tiên thiên (1 phần), Dương trạch và Nhân sự là Hậu thiên (2 phần)"</strong>. Mỗi thành viên trong gia đình khi ngủ đúng cung vị Danh (Quẻ) của mình thì tạng phủ an hòa, con cái hiếu thuận, vợ chồng đắc quẻ <em>Địa Thiên Thái</em>, tài lộc tự nhiên hưng vượng.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cuu-cung-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+(function(){
+const y=Math.PI,N=["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"],T=["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],B=["Chuột","Trâu","Hổ","Mèo","Rồng","Rắn","Ngựa","Dê","Khỉ","Gà","Chó","Lợn"],S=["Xuân phân","Thanh minh","Cốc vũ","Lập hạ","Tiểu mãn","Mang chủng","Hạ chí","Tiểu thử","Đại thử","Lập thu","Xử thử","Bạch lộ","Thu phân","Hàn lộ","Sương giáng","Lập đông","Tiểu tuyết","Đại tuyết","Đông chí","Tiểu hàn","Đại hàn","Lập xuân","Vũ thủy","Kinh trập"],O=["23h - 1h","1h - 3h","3h - 5h","5h - 7h","7h - 9h","9h - 11h","11h - 13h","13h - 15h","15h - 17h","17h - 19h","19h - 21h","21h - 23h"],A=[{name:"Thanh Long",isGood:!0,type:"Hoàng đạo"},{name:"Minh Đường",isGood:!0,type:"Hoàng đạo"},{name:"Thiên Hình",isGood:!1,type:"Hắc đạo"},{name:"Chu Tước",isGood:!1,type:"Hắc đạo"},{name:"Kim Quỹ",isGood:!0,type:"Hoàng đạo"},{name:"Thiên Đức",isGood:!0,type:"Hoàng đạo"},{name:"Bạch Hổ",isGood:!1,type:"Hắc đạo"},{name:"Ngọc Đường",isGood:!0,type:"Hoàng đạo"},{name:"Thiên Lao",isGood:!1,type:"Hắc đạo"},{name:"Huyền Vũ",isGood:!1,type:"Hắc đạo"},{name:"Tư Mệnh",isGood:!0,type:"Hoàng đạo"},{name:"Câu Trận",isGood:!1,type:"Hắc đạo"}],V=[{name:"Đại An",good:!0,desc:"Mọi việc yên ổn, gặp nhiều may mắn, cầu tài ở hướng Tây Nam."},{name:"Lưu Niên",good:!1,desc:"Việc dây dưa khó dứt, hao tốn công sức, nên cẩn trọng giấy tờ."},{name:"Tốc Hỷ",good:!0,desc:"Niềm vui đến mau lẹ, xuất hành hay gặp quý nhân, làm việc gì cũng chóng thành."},{name:"Xích Khẩu",good:!1,desc:"Dễ xảy ra tranh cãi, mâu thuẫn miệng tiếng, nên giữ lời ăn tiếng nói."},{name:"Tiểu Cát",good:!0,desc:"Thuận lợi nhỏ, gia đạo êm ấm, buôn bán có lộc nhẹ."},{name:"Không Vong",good:!1,desc:"Dễ gặp trắc trở, dở dang, hạn chế khởi sự việc trọng đại."}],_=[{name:"Kiến",good:!0,desc:"Khởi đầu, xuất hành, đính hôn, nhận việc mới.",avoid:"Động thổ, an táng."},{name:"Trừ",good:!0,desc:"Giải trừ vận xui, chữa bệnh, dọn dẹp nhà cửa.",avoid:"Cưới hỏi, mở tiệm."},{name:"Mãn",good:!0,desc:"Cầu tài, mở kho, cưới gả, tiệc tùng.",avoid:"Kiện cáo, an táng."},{name:"Bình",good:!0,desc:"Sửa đường, đắp đê, việc bình hòa.",avoid:"Khởi công lớn."},{name:"Định",good:!0,desc:"Ký hợp đồng, đính hôn, nhập học, cầu phúc.",avoid:"Kiện tụng, tranh chấp."},{name:"Chấp",good:!1,desc:"Bắt trộm, tu tạo vườn tược.",avoid:"Khai trương, xuất hành xa."},{name:"Phá",good:!1,desc:"Phá dỡ nhà cũ, chữa bệnh hiểm.",avoid:"Cưới xin, làm nhà, buôn bán."},{name:"Nguy",good:!1,desc:"Thận trọng, cúng tế cầu an.",avoid:"Leo cao, đi thuyền biển, mạo hiểm."},{name:"Thành",good:!0,desc:"Mọi việc đại cát, khai trương, cưới hỏi, nhập trạch.",avoid:"Kiện tụng, tranh biện."},{name:"Thâu",good:!0,desc:"Thu nợ, gặt hái, mua sắm tài sản.",avoid:"An táng, xuất tiền cho vay."},{name:"Khai",good:!0,desc:"Khai trương, xuất hành, nhập học, kết bạn.",avoid:"Động thổ, an táng."},{name:"Bế",good:!1,desc:"Đắp đập, xây vá hầm, nghỉ ngơi tĩnh dưỡng.",avoid:"Mở cửa hàng, xuất hành."}],R=[{name:"Giác",good:!0,animal:"Mộc Giác Giao",desc:"Đại cát: đỗ đạt, công danh thăng tiến, hôn thú hòa hợp."},{name:"Cang",good:!1,animal:"Kim Cang Long",desc:"Bình thường: đề phòng tranh chấp, kiện tụng."},{name:"Đê",good:!1,animal:"Thổ Đê Lạc",desc:"Hung: kỵ khởi công, cất nóc, cưới gả."},{name:"Phòng",good:!0,animal:"Nhật Phòng Thố",desc:"Đại cát: tiền tài dồi dào, thăng quan tiến chức."},{name:"Tâm",good:!1,animal:"Nguyệt Tâm Hồ",desc:"Hung: kỵ động thổ, cưới hỏi, xuất hành."},{name:"Vĩ",good:!0,animal:"Hỏa Vĩ Hổ",desc:"Cát: xuất ngoại, gả cưới, đào giếng đều tốt."},{name:"Cơ",good:!0,animal:"Thủy Cơ Báo",desc:"Cát: mở mang kinh doanh, tậu trâu tậu đất."},{name:"Đẩu",good:!0,animal:"Mộc Đẩu Giải",desc:"Cát: xây cất, nhập trạch, cầu tài lộc."},{name:"Ngưu",good:!1,animal:"Kim Ngưu Ngưu",desc:"Hung: tránh cưới hỏi, khai trương."},{name:"Nữ",good:!1,animal:"Thổ Nữ Bức",desc:"Hung: tranh chấp, cãi cọ, hao tài."},{name:"Hư",good:!1,animal:"Nhật Hư Thử",desc:"Hung: tai ương, tránh việc lớn."},{name:"Nguy",good:!1,animal:"Nguyệt Nguy Yến",desc:"Bình: nên làm việc thiện, tu phúc."},{name:"Thất",good:!0,animal:"Hỏa Thất Trư",desc:"Đại cát: cưới gả, xây cất đều vinh hiển."},{name:"Bích",good:!0,animal:"Thủy Bích Du",desc:"Cát: khai trương, nhập trạch phát đạt."},{name:"Khuê",good:!1,animal:"Mộc Khuê Mộc",desc:"Bình: học hành thi cử tốt, kỵ khai trương."},{name:"Lâu",good:!0,animal:"Kim Lâu Cẩu",desc:"Cát: cưới hỏi, xây nhà sinh quý tử."},{name:"Vị",good:!0,animal:"Thổ Vị Dực",desc:"Cát: mưu sự dễ thành, giàu sang."},{name:"Mão",good:!1,animal:"Nhật Mão Kê",desc:"Hung: kỵ xây cất, an táng."},{name:"Tất",good:!0,animal:"Nguyệt Tất Dẫn",desc:"Đại cát: kinh doanh, cưới gả thuận lợi."},{name:"Chủy",good:!1,animal:"Hỏa Chủy Hầu",desc:"Hung: không nên mưu sự lớn."},{name:"Sâm",good:!0,animal:"Thủy Sâm Viên",desc:"Cát: buôn bán, xây cất hanh thông."},{name:"Tỉnh",good:!0,animal:"Mộc Tỉnh Can",desc:"Cát: đào giếng, khởi công, khai trương."},{name:"Quỷ",good:!1,animal:"Kim Quỷ Cừu",desc:"Hung: kỵ nhập trạch, cưới gả."},{name:"Liễu",good:!1,animal:"Thổ Liễu Chương",desc:"Hung: hao tổn tiền tài, kỵ đi xa."},{name:"Tinh",good:!1,animal:"Nhật Tinh Mã",desc:"Bình thường: cưới hỏi bình hòa, tránh an táng."},{name:"Trương",good:!0,animal:"Nguyệt Trương Lộc",desc:"Cát: tài lộc sinh sôi, vinh hiển."},{name:"Dực",good:!1,animal:"Hỏa Dực Hỏa",desc:"Bình: tránh việc tranh chấp thị phi."},{name:"Chẩn",good:!0,animal:"Thủy Chẩn Thủy",desc:"Đại cát: thăng quan phát tài, cưới gả viên mãn."}],L=[{hyThan:"Đông Bắc",taiThan:"Đông Nam",hacThan:"Bắc"},{hyThan:"Tây Bắc",taiThan:"Đông Nam",hacThan:"Bắc"},{hyThan:"Tây Nam",taiThan:"Chính Đông",hacThan:"Bắc"},{hyThan:"Chính Nam",taiThan:"Chính Đông",hacThan:"Bắc"},{hyThan:"Đông Nam",taiThan:"Chính Bắc",hacThan:"Bắc"},{hyThan:"Đông Bắc",taiThan:"Chính Nam",hacThan:"Bắc"},{hyThan:"Tây Bắc",taiThan:"Tây Nam",hacThan:"Bắc"},{hyThan:"Tây Nam",taiThan:"Tây Nam",hacThan:"Bắc"},{hyThan:"Chính Nam",taiThan:"Chính Tây",hacThan:"Bắc"},{hyThan:"Đông Nam",taiThan:"Tây Bắc",hacThan:"Bắc"}],D={"1/1":"Tết Dương Lịch","14/2":"Lễ tình nhân (Valentine)","27/2":"Ngày Thầy thuốc Việt Nam","8/3":"Quốc tế Phụ nữ","26/3":"Thành lập Đoàn TNCS Hồ Chí Minh","30/4":"Giải phóng miền Nam","1/5":"Quốc tế Lao động","7/5":"Chiến thắng Điện Biên Phủ","19/5":"Sinh nhật Chủ tịch Hồ Chí Minh","1/6":"Quốc tế Thiếu nhi","21/6":"Báo chí cách mạng Việt Nam","28/6":"Ngày Gia đình Việt Nam","27/7":"Thương binh Liệt sĩ","19/8":"Cách mạng Tháng Tám","2/9":"Quốc khánh nước CHXHCN Việt Nam","10/10":"Giải phóng Thủ đô","13/10":"Ngày Doanh nhân Việt Nam","20/10":"Ngày Phụ nữ Việt Nam","20/11":"Ngày Nhà giáo Việt Nam","22/12":"Thành lập QĐND Việt Nam","24/12":"Đêm Giáng sinh (Noel)","25/12":"Lễ Giáng sinh (Noel)"},G={"1/1":"Mùng 1 Tết Nguyên Đán","2/1":"Mùng 2 Tết Nguyên Đán","3/1":"Mùng 3 Tết Nguyên Đán","15/1":"Rằm tháng Giêng (Tết Nguyên Tiêu)","3/3":"Tết Hàn Thực","10/3":"Giỗ Tổ Hùng Vương","15/4":"Lễ Phật Đản","5/5":"Tết Đoan Ngọ","15/7":"Vu Lan báo hiếu (Xá tội vong nhân)","15/8":"Tết Trung Thu (Tết trông trăng)","9/9":"Tết Trùng Cửu","10/10":"Tết Trùng Thập","23/12":"Tiễn Ông Táo chầu trời","29/12":"Tất Niên cuối năm","30/12":"Đêm Giao Thừa"};function b(e,h,n){let t=Math.floor((14-h)/12),a=n+4800-t,i=h+12*t-3,o=e+Math.floor((153*i+2)/5)+365*a+Math.floor(a/4)-Math.floor(a/100)+Math.floor(a/400)-32045;return o<2299161&&(o=e+Math.floor((153*i+2)/5)+365*a+Math.floor(a/4)-32083),o}function $(e){let h,n,t;if(e>2299160){let a=e+32044,i=Math.floor((4*a+3)/146097),o=a-Math.floor(146097*i/4),c=Math.floor((4*o+3)/1461),g=o-Math.floor(1461*c/4),u=Math.floor((5*g+2)/153);h=g-Math.floor((153*u+2)/5)+1,n=u+3-12*Math.floor(u/10),t=100*i+c-4800+Math.floor(u/10)}else{let a=e+32082,i=Math.floor((4*a+3)/1461),o=a-Math.floor(1461*i/4),c=Math.floor((5*o+2)/153);h=o-Math.floor((153*c+2)/5)+1,n=c+3-12*Math.floor(c/10),t=i-4800+Math.floor(c/10)}return{day:h,month:n,year:t}}function p(e){return Math.floor(e)}function f(e,h=7){let n=e/1236.85,t=n*n,a=t*n,i=y/180,o=241502075933e-5+29.53058868*e+1178e-7*t-155e-9*a;o=o+33e-5*Math.sin((166.56+132.87*n-.009173*t)*i);let c=359.2242+29.10535608*e-333e-7*t-347e-8*a,g=306.0253+385.81691806*e+.0107306*t+1236e-8*a,u=21.2964+390.67050646*e-.0016528*t-239e-8*a,s=(.1734-393e-6*n)*Math.sin(c*i)+.0021*Math.sin(2*i*c);s=s-.4068*Math.sin(g*i)+.0161*Math.sin(2*i*g),s=s-4e-4*Math.sin(3*i*g),s=s+.0104*Math.sin(2*i*u)-.0051*Math.sin((c+g)*i),s=s-.0074*Math.sin((c-g)*i)+4e-4*Math.sin((2*u+c)*i),s=s-4e-4*Math.sin((2*u-c)*i)-6e-4*Math.sin((2*u+g)*i),s=s+.001*Math.sin((2*u-g)*i)+5e-4*Math.sin((c+2*g)*i);let d;n<-11?d=.001+839e-6*n+2261e-7*t-845e-8*a-81e-9*n*a:d=-278e-6+265e-6*n+262e-6*t;let l=o+s-d;return p(l+.5+h/24)}function v(e){let h=(e-2451545)/36525,n=h*h,t=y/180,a=357.5291+35999.0503*h-1559e-7*n-48e-8*h*n,i=280.46645+36000.76983*h+3032e-7*n,o=(1.9146-.004817*h-14e-6*n)*Math.sin(t*a);o=o+(.019993-101e-6*h)*Math.sin(t*2*a),o=o+29e-5*Math.sin(t*3*a);let c=i+o;return c=c*t,c=c-y*2*p(c/(y*2)),c}function H(e,h=7){return p(v(e-.5-h/24)/y*6)}function r(e,h=7){let n=b(31,12,e)-2415021,t=Math.floor(n/29.530588853),a=f(t,h);return H(a,h)>=9&&(a=f(t-1,h)),a}function x(e,h=7){let n=Math.floor((e-24150210769986e-7)/29.530588853+.5),t=0,a=1,i=H(f(n+a,h),h);do t=i,a++,i=H(f(n+a,h),h);while(i!==t&&a<14);return a-1}function E(e,h,n,t=7){let a=b(e,h,n),i=p((a-24150210769986e-7)/29.530588853),o=f(i+1,t);o>a&&(o=f(i,t));let c=r(n-1,t),g=r(n,t),u;c>=o?(u=n-1,c=r(n-2,t),g=r(n-1,t)):o>=g?(u=n+1,c=g,g=r(n+1,t)):u=n;let s=a-o+1,d=p((o-c)/29),l=0,m=d+11;if(g-c>365){let M=x(c,t);d>=M&&(m=d+10,d===M&&(l=1))}return m>12&&(m=m-12),m>=11&&d<4&&(u-=1),{day:s,month:m,year:u,leap:l,jd:a}}function hn(e,h,n,t=0,a=7){let i,o;h<11?(i=r(n-1,a),o=r(n,a)):(i=r(n,a),o=r(n+1,a));let c=p(.5+(i-24150210769986e-7)/29.530588853),g=h-11;g<0&&(g+=12);const u=t===1||t===!0||t==="1";if(o-i>365){const d=x(i,a);let l=d-2;if(l<0&&(l+=12),u&&h!==l)return{day:0,month:0,year:0};(u||g>=d)&&(g+=1)}const s=f(c+g,a);return $(s+e-1)}function an(e,h=7){const n=parseInt(e,10);if(isNaN(n)||n<1900||n>2100)return 0;const t=r(n-1,h);if(r(n,h)-t>365){const i=x(t,h);if(i>0){let o=i-2;return o<0&&(o+=12),o}}return 0}function P(e,h=7){let n=v(e-.5-h/24)/y*180;n<0&&(n+=360);const t=Math.floor(n/15);return S[t%24]}function U(e){let h=(e+6)%10,n=(e+8)%12;return{can:N[h],chi:T[n],animal:B[n],text:`${N[h]} ${T[n]}`}}function j(e,h){let a=((h+6)%10%5*2+2+(e-1))%10,i=(e+1)%12;return{can:N[a],chi:T[i],text:`${N[a]} ${T[i]}`}}function Q(e){let h=(e+9)%10,n=(e+1)%12;return{canIndex:h,chiIndex:n,can:N[h],chi:T[n],animal:B[n],text:`${N[h]} ${T[n]}`}}function w(e){const h={0:[0,1,3,6,8,9],6:[0,1,3,6,8,9],1:[2,3,5,8,10,11],7:[2,3,5,8,10,11],2:[0,1,4,5,7,10],8:[0,1,4,5,7,10],3:[0,2,3,6,7,9],9:[0,2,3,6,7,9],4:[2,4,5,8,9,11],10:[2,4,5,8,9,11],5:[1,4,6,7,10,11],11:[1,4,6,7,10,11]},n=new Set(h[e]||[]);return T.map((t,a)=>{const i=n.has(a);return{chi:t,range:O[a],isGood:i,type:i?"Hoàng đạo":"Hắc đạo",badgeClass:i?"text-emerald-400 bg-emerald-500/10":"text-neutral-400 bg-white/5"}})}function W(e,h){const n=(e-1)%6*2,t=(h-n+12)%12,a=A[t];return{name:a.name,isGood:a.isGood,type:a.type,text:`Ngày ${a.name} (${a.type})`}}function X(e,h){let n=(h+e-2)%6;return n<0&&(n+=6),V[n]}function q(e,h){let n=(e+1)%12,t=(h-n+12)%12;return _[t]}function F(e){let h=(e+16)%28;return h<0&&(h+=28),R[h]}function Y(e,h){const n=[];return[3,7,13,18,22,27].includes(e)&&n.push({name:"Ngày Tam Nương",desc:"Dân gian kiêng kỵ xuất hành, cưới hỏi, khai trương, làm việc đại sự."}),[5,14,23].includes(e)&&n.push({name:"Ngày Nguyệt Kỵ",desc:"Tránh khởi công, buôn bán lớn, xuất hành xa."}),{1:13,2:11,3:9,4:7,5:5,6:3,7:1,7.5:29,8:27,9:25,10:23,11:21,12:19}[h]===e&&n.push({name:"Dương Công Kỵ Nhật",desc:"Ngày trăm sự đều kỵ, chỉ nên làm việc thiện nguyện hoặc an tĩnh."}),n}function J(e){return L[e]||L[0]}function z(e,h,n,t){const a=[],i=`${e}/${h}`,o=`${n}/${t}`;return D[i]&&a.push({type:"solar",name:D[i]}),G[o]&&a.push({type:"lunar",name:G[o]}),n===15?a.push({type:"moon",name:"Ngày Rằm"}):n===1&&a.push({type:"moon",name:"Mùng 1"}),a}function Z(e,h,n){const t=E(e,h,n),a=P(t.jd),i=U(t.year),o=j(t.month,t.year),c=Q(t.jd),g=w(c.chiIndex),u=g.filter(K=>K.isGood),s=W(t.month,c.chiIndex),d=X(t.day,t.month),l=q(t.month,c.chiIndex),m=F(t.jd),M=Y(t.day,t.month),k=J(c.canIndex),I=z(e,h,t.day,t.month),C=new Date(n,h-1,e).getDay();return{solar:{day:e,month:h,year:n,dayOfWeek:["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"][C],dayOfWeekIndex:C,isWeekend:C===0||C===6},lunar:{day:t.day,month:t.month,year:t.year,isLeap:t.leap===1,jd:t.jd},canChi:{year:i.text,month:o.text,day:c.text,fullText:`Ngày ${c.text} tháng ${o.text} năm ${i.text}`},solarTerm:a,dayZodiac:s,zodiacHours:g,goodHours:u,lucDieu:d,truc:l,star:m,taboos:M,directions:k,holidays:I}}function en(e,h){const n=new Date(h,e,0).getDate(),t=[];for(let c=1;c<=n;c++)t.push(Z(c,e,h));let o=(new Date(h,e-1,1).getDay()+6)%7;return{month:e,year:h,daysInMonth:n,blankDaysBefore:o,days:t}}
+window.__lunar = { solarToLunar: E, getMonthCalendar: en, lunarToSolar: hn, getLeapMonth: an, jdToCanChiDay: Q, getDayInfo: Z };
+})();
+
+(function(){
+const Ih = window.__lunar.solarToLunar, Oh = window.__lunar.jdToCanChiDay;function In(t){if(!t)return[];const i=(t.mainStars||[]).map(h=>h.name),c=(t.goodStars||[]).map(h=>h.name),e=(t.badStars||[]).map(h=>h.name);return[...i,...c,...e]}function T(t,i){return t?In(t).includes(i):!1}function On(t){const i=t.cungMenh;if(!i)return[];const c=i.chiIndex,e=(c+4)%12,h=(c+8)%12,g=(c+6)%12;return[t.cungList[c],t.cungList[e],t.cungList[h],t.cungList[g]].filter(Boolean)}function Uh(t){const i=On(t),c=new Set;return i.forEach(e=>{In(e).forEach(h=>c.add(h))}),c}function Eh(t,i){const c=(i+11)%12,e=(i+1)%12;return{prev:t.cungList[c],next:t.cungList[e]}}function Gh(t){if(!t||!t.cungMenh||!t.cungList)return[];const i=[],c=t.cungMenh,e=c.chiIndex,h=Uh(t),g=On(t),d=Eh(t,e),P=h.has("Tả Phụ")||h.has("Tả Phù");T(c,"Tử Vi")&&P&&h.has("Hữu Bật")&&i.push({id:"quanco",name:"Quân Thần Khánh Hội",type:"noble",tag:"Thượng Đẳng Cách",color:"from-amber-400 to-yellow-600",textColor:"text-amber-300",borderColor:"border-amber-500/40",bgBadge:"bg-amber-500/15",summary:"Đế tinh đắc cách được tôi hiền phò tá, quyền uy tột bực, đại phú đại quý.",details:"Tử Vi tọa thủ cung Mệnh được cả hai trợ thủ đắc lực Tả Phụ và Hữu Bật hội tụ về Tam Phương Tứ Chính. Người mang cách này có tố chất lãnh đạo bẩm sinh, luôn có quý nhân phò tá, dễ vươn lên hàng ngũ quản lý, chỉ huy trong sự nghiệp.",classicQuote:"Tử Vi Phụ Bật đồng cung, nhất hô bách nặc."}),T(c,"Tử Vi")&&T(c,"Thiên Phủ")&&i.push({id:"zifu",name:"Tử Phủ Đồng Cung",type:"noble",tag:"Đại Phú Đại Quý",color:"from-yellow-400 to-amber-600",textColor:"text-yellow-300",borderColor:"border-yellow-500/40",bgBadge:"bg-yellow-500/15",summary:"Đế Tinh và Tài Khố đồng lâm, cốt cách đoan chính, một đời phúc lộc trọn vẹn.",details:"Tử Vi (chủ quan quý) song hành cùng Thiên Phủ (chủ tài khố bất động sản) đóng tại cung Dần hoặc Thân. Chủ nhân cả đời cơm áo đủ đầy, tài vận vững vàng, tính tình đôn hậu, rất có uy danh trong giới thương gia hoặc chính đạo.",classicQuote:"Tử Phủ đồng cung, chung thân phúc hậu."});let S=!1,u=!1,H=!1;g.forEach(l=>{(l.mainStars||[]).forEach(b=>{b.hoa?.name?.includes("Hóa Lộc")&&(S=!0),b.hoa?.name?.includes("Hóa Quyền")&&(u=!0),b.hoa?.name?.includes("Hóa Khoa")&&(H=!0)})}),S&&u&&H&&i.push({id:"sanqi",name:"Tam Kỳ Gia Hội",type:"supreme",tag:"Kỳ Cách Xuất Chúng",color:"from-purple-400 to-indigo-600",textColor:"text-purple-300",borderColor:"border-purple-500/40",bgBadge:"bg-purple-500/15",summary:"Lộc - Quyền - Khoa tề tụ Tam Phương, danh thơm lừng lẫy, tài lộc song toàn.",details:"Là một trong những cách cục rực rỡ nhất trong Tử Vi Đẩu Số. Hóa Khoa mang lại học vấn uy tín, Hóa Quyền mang lại địa vị thực quyền, Hóa Lộc đem lại của cải sung túc. Đương số dễ vang danh bốn bể và nắm giữ vị thế lớn trong xã hội.",classicQuote:"Tam Kỳ Gia Hội, danh chấn thiên hạ."}),h.has("Thất Sát")&&h.has("Phá Quân")&&h.has("Tham Lang")&&i.push({id:"satphatham",name:"Sát Phá Tham Cách",type:"action",tag:"Khai Phá Bứt Phá",color:"from-red-400 to-rose-600",textColor:"text-rose-300",borderColor:"border-rose-500/40",bgBadge:"bg-rose-500/15",summary:"Thế cục võ tướng biến động, ưa mạo hiểm, giàu nghị lực, lập nghiệp từ tay trắng.",details:"Bộ ba Thất Sát (dũng mãnh), Phá Quân (tiên phong đập cũ xây mới) và Tham Lang (tháo vát cơ biến). Đương số không cam chịu cuộc sống an nhàn một chỗ, rất thích hợp với khởi nghiệp kinh doanh, lực lượng vũ trang hoặc tiên phong mở lối đi riêng.",classicQuote:"Sát Phá Liêm Tham hội, anh hùng danh bất hư truyền."}),h.has("Thiên Cơ")&&h.has("Thái Âm")&&h.has("Thiên Đồng")&&h.has("Thiên Lương")&&i.push({id:"conguYet",name:"Cơ Nguyệt Đồng Lương",type:"wisdom",tag:"Mưu Sĩ Văn Cách",color:"from-emerald-400 to-teal-600",textColor:"text-emerald-300",borderColor:"border-emerald-500/40",bgBadge:"bg-emerald-500/15",summary:"Trí tuệ uyên thâm, mưu lược khéo léo, đắc cách công chức, học giả, chuyên gia.",details:"Thế cục đại diện cho văn chức, mưu sĩ và cố vấn bậc thầy. Người mang cách này thông minh nhạy bén, giỏi phân tích, khéo thu xếp công việc, đặc biệt thành công trong các ngành nghiên cứu, công nghệ, y tế hoặc viên chức nhà nước.",classicQuote:"Cơ Nguyệt Đồng Lương tác lại nhân, một đời thanh bạch."});const m=t.cungList.find(l=>T(l,"Thái Dương")),v=t.cungList.find(l=>T(l,"Thái Âm"));if(m&&v){const l=["M","V"].includes(m.mainStars.find(_=>_.name==="Thái Dương")?.brightness),b=["M","V"].includes(v.mainStars.find(_=>_.name==="Thái Âm")?.brightness);l&&b&&(h.has("Thái Dương")||h.has("Thái Âm"))&&i.push({id:"nhatnguyet",name:"Nhật Nguyệt Tịnh Minh",type:"noble",tag:"Quang Đại Cách",color:"from-cyan-400 to-blue-600",textColor:"text-cyan-300",borderColor:"border-cyan-500/40",bgBadge:"bg-cyan-500/15",summary:"Mặt trời mặt trăng cùng sáng soi bản mệnh, công danh rực rỡ, tiền đồ vô lượng.",details:"Thái Dương miếu vượng chủ quang minh danh vọng, Thái Âm miếu vượng chủ nội hàm của cải. Âm Dương tương phối viên mãn, chủ nhân có tầm nhìn sâu rộng, tính tình nhân hậu, hậu vận rạng danh tổ tông.",classicQuote:"Nhật Nguyệt tịnh minh, tá cửu trùng ư nghiêu thuấn."})}T(c,"Thái Dương")&&T(c,"Thái Âm")&&(e===1||e===7)&&i.push({id:"nhatnguyetdongcung",name:"Nhật Nguyệt Đồng Cung",type:"balance",tag:"Âm Dương Hội Tụ",color:"from-amber-300 to-teal-500",textColor:"text-amber-200",borderColor:"border-amber-400/40",bgBadge:"bg-amber-400/15",summary:"Âm Dương giao hòa tại Sửu Mùi, đa tài đa nghệ, tiền hung hậu kiết.",details:"Mặt trời và mặt trăng cùng đóng tại một cung vị. Thời trẻ tư tưởng thường giằng xé giữa thực tế và lý tưởng, nhưng càng về trung niên càng uyên thâm mặn mà, tích lũy được khối tài sản và kinh nghiệm dồi dào.",classicQuote:"Nhật Nguyệt đồng cung, tài danh xuất chúng."});const y=t.cungList.find(l=>T(l,"Tham Lang"));if(y){const l=T(y,"Hỏa Tinh")||h.has("Hỏa Tinh"),b=T(y,"Linh Tinh")||h.has("Linh Tinh");(T(c,"Tham Lang")||h.has("Tham Lang"))&&(l||b)&&i.push({id:"hoatan",name:l?"Hỏa Tham Hoạch Phát":"Linh Tham Hoạch Phát",type:"wealth",tag:"Bạo Phát Bất Ngờ",color:"from-orange-400 to-amber-600",textColor:"text-orange-300",borderColor:"border-orange-500/40",bgBadge:"bg-orange-500/15",summary:"Tham Lang gặp Hỏa Linh, thời vận bừng sáng, dễ bạo phát tài lộc như vũ bão.",details:"Tham Lang mộc hỏa tương sinh cùng Hỏa Tinh/Linh Tinh. Là cách cục hoạch tài trứ danh trong Tử Vi Đẩu Số. Đương số rất nhanh nhạy với thời cơ thị trường, dám nghĩ dám làm, khi gặp đúng vận hạn thì phát tài nhanh chóng.",classicQuote:"Tham Lang ngộ Hỏa Linh, anh hùng hoạch phát."})}T(c,"Vũ Khúc")&&T(c,"Tham Lang")&&i.push({id:"vutham",name:"Vũ Tham Đồng Hành",type:"wealth",tag:"Phát Muộn Bền Vững",color:"from-amber-400 to-orange-500",textColor:"text-amber-300",borderColor:"border-amber-400/40",bgBadge:"bg-amber-400/15",summary:"Tài tinh gặp Dục tinh, tiền vận gian truân tôi luyện, hậu vận sung túc đại phú.",details:'Cổ nhân đúc kết: "Vũ Tham bất phát thiếu niên nhân" (Vũ Tham không phát người trẻ tuổi). Trước 30 tuổi cần tích lũy học vấn, nhẫn nại vượt khó; từ sau 35 tuổi trở đi vận khí hanh thông, công danh tiền tài thăng hoa vững chắc.',classicQuote:"Vũ Tham đồng cung, tiền bần hậu phú."}),h.has("Thái Dương")&&h.has("Thiên Lương")&&h.has("Văn Xương")&&(h.has("Lộc Tồn")||h.has("Hóa Lộc"))&&i.push({id:"duongluong",name:"Dương Lương Xương Lộc",type:"scholar",tag:"Khoa Bảng Đệ Nhất",color:"from-blue-400 to-indigo-600",textColor:"text-blue-300",borderColor:"border-blue-500/40",bgBadge:"bg-blue-500/15",summary:"Khoa cử hanh thông, thi cử đỗ đạt cao, danh giá trên con đường học thuật, bằng cấp.",details:"Thế cục đệ nhất về thi cử và học vị của cổ thư. Đương số có tư duy sắc sảo, học một biết mười, rất dễ thi đậu vào các trường danh giá hoặc đạt các chứng chỉ chuyên môn cấp cao, được người đời trọng vọng.",classicQuote:"Dương Lương Xương Lộc, định sản cao khoa."}),T(c,"Cự Môn")&&(e===0||e===6)&&i.push({id:"thachtrung",name:"Thạch Trung Ẩn Ngọc",type:"wisdom",tag:"Ngọc Giấu Trong Đá",color:"from-slate-300 to-zinc-500",textColor:"text-zinc-200",borderColor:"border-zinc-400/40",bgBadge:"bg-zinc-400/15",summary:"Tài năng kín đáo ẩn tàng, tài hùng biện vượt trội, càng mài giũa càng rực sáng.",details:"Cự Môn an tại Tý Ngọ được ví như ngọc quý vùi trong đá. Thời trẻ ít lộ diện, nhưng sở hữu khả năng ngôn ngữ, phản biện và tư duy logic siêu đẳng. Hợp các nghề ngoại giao, luật gia, giảng dạy, cố vấn hoặc truyền thông đại chúng.",classicQuote:"Tý Ngọ Cự Môn, thạch trung ẩn ngọc, phú quý nan lường."}),h.has("Lộc Tồn")&&S&&i.push({id:"songloc",name:"Song Lộc Triều Viên",type:"wealth",tag:"Cự Phú Cách",color:"from-emerald-400 to-green-600",textColor:"text-emerald-300",borderColor:"border-emerald-500/40",bgBadge:"bg-emerald-500/15",summary:"Trời ban kho lộc nhân đôi, tụ tài vững chãi, buôn may bán đắt.",details:"Hai ngôi sao tài lộc lớn nhất cùng chiếu vào bản mệnh. Chủ về nguồn thu nhập phong phú, có cả chính tài lẫn thiên tài, kinh doanh bất động sản hoặc đầu tư tài chính đều dễ sinh lời lớn.",classicQuote:"Song Lộc trùng phùng, chung thân phú túc."});const I=T(d.prev,"Tả Phụ")||T(d.prev,"Tả Phù"),r=T(d.next,"Tả Phụ")||T(d.next,"Tả Phù");if((I&&T(d.next,"Hữu Bật")||T(d.prev,"Hữu Bật")&&r)&&i.push({id:"tahuugiap",name:"Tả Hữu Giáp Mệnh",type:"noble",tag:"Quý Nhân Nâng Đỡ",color:"from-sky-400 to-blue-500",textColor:"text-sky-300",borderColor:"border-sky-500/40",bgBadge:"bg-sky-500/15",summary:"Hai bên cánh tay đắc lực nâng đỡ bản mệnh, ra đời nhiều người giúp, ít gặp cô độc.",details:"Tả Phụ và Hữu Bật kẹp sát sườn cung Mệnh giúp củng cố bản mệnh vững chãi. Đi đâu cũng có bạn bè, đối tác hoặc cấp trên tận tình chỉ dạy, gặp hiểm cảnh luôn có người đứng ra gánh vác che chở.",classicQuote:"Tả Phụ Hữu Bật giáp Mệnh, nhất sinh phúc hậu."}),c.mainStars.length===0&&e===7){const l=t.cungList[(e+6)%12];l&&T(l,"Thái Dương")&&T(l,"Thái Âm")&&i.push({id:"minhchau",name:"Minh Châu Xuất Hải",type:"noble",tag:"Ngọc Sáng Biển Sâu",color:"from-teal-300 to-cyan-500",textColor:"text-teal-200",borderColor:"border-teal-400/40",bgBadge:"bg-teal-400/15",summary:"Mệnh an tại Mùi mượn ánh sáng Nhật Nguyệt chầu về, lập nên kỳ tích rạng rỡ.",details:"Cung Mệnh rỗng vô chính diệu tại Mùi nhưng đón trọn vẹn cả vầng nhật nguyệt từ Sửu chiếu về. Chủ nhân xuất thân bình dị nhưng càng lớn càng bộc lộ tài năng phi phàm, dễ gặt hái danh vị hiển vinh phương xa.",classicQuote:"Minh châu xuất hải, tài đức kiêm toàn."})}if([...c.mainStars||[],...c.goodStars||[],...c.badStars||[]].some(l=>l.hoa?.name?.includes("Hóa Kỵ"))){const l=T(d.prev,"Kình Dương")||T(d.next,"Kình Dương"),b=T(d.prev,"Đà La")||T(d.next,"Đà La");l&&b&&i.push({id:"kinhdagiapky",name:"Kình Đà Giáp Kỵ",type:"caution",tag:"Hung Cách Cần Hóa Giải",color:"from-amber-600 to-red-600",textColor:"text-red-300",borderColor:"border-red-500/40",bgBadge:"bg-red-500/15",summary:"Kình Dương Đà La kẹp Hóa Kỵ, đường đời nhiều gập ghềnh, cần lấy đức hạnh làm gốc.",details:"Cách cục cảnh báo về các mối hiểm nguy từ tiểu nhân, thị phi và áp lực tinh thần. Lời khuyên của cổ nhân: không nên nóng vội, làm gì cũng phải minh bạch giấy tờ, tu dưỡng tâm tính và làm nhiều việc thiện để chuyển hung thành cát.",classicQuote:"Kình Đà giáp Kỵ vi bại cục, tu tâm dưỡng tính tắc an."})}return i}const k=["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],qn=["Thủy","Thổ","Mộc","Mộc","Thổ","Hỏa","Hỏa","Thổ","Kim","Kim","Thổ","Thủy"],An=["+","-","+","-","+","-","+","-","+","-","+","-"],Q=["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"],Rh=["Mệnh","Phụ Mẫu","Phúc Đức","Điền Trạch","Quan Lộc","Nô Bộc","Thiên Di","Tật Ách","Tài Bạch","Tử Tức","Phu Thê","Huynh Đệ"],vt={Mệnh:"Bản mệnh, tính cách cốt lõi, tư chất bẩm sinh và hình hài tướng mạo trọn đời.","Phụ Mẫu":"Mối quan hệ với cha mẹ, phúc ấm dòng họ, sự bảo bọc và duyên nghiệp phụ mẫu.","Phúc Đức":"Phúc đức tổ tiên, đời sống tinh thần, tuổi thọ và sự bình an nội tâm.","Điền Trạch":"Nhà cửa đất đai, bất động sản, chốn an cư và tài sản thừa kế.","Quan Lộc":"Con đường công danh sự nghiệp, địa vị xã hội, ngành nghề và thăng trầm danh vọng.","Nô Bộc":"Bạn bè, đồng nghiệp, cấp dưới, quý nhân tương trợ hay tiểu nhân quấy phá.","Thiên Di":"Môi trường xã hội bên ngoài, sự may mắn khi xuất hành, đi xa, giao tiếp đối ngoại.","Tật Ách":"Sức khỏe thể chất, các tai ách rủi ro tiềm ẩn, bệnh tật và khả năng tai qua nạn khỏi.","Tài Bạch":"Năng lực kiếm tiền, quản lý tài chính, phương thức phát tài và túi tiền cuộc đời.","Tử Tức":"Đường con cái, số lượng, đức tính và sự hiếu thảo của con cháu về sau.","Phu Thê":"Đường tình duyên hôn nhân, tính cách người bạn đời, thời điểm kết hôn và hòa hợp gia đạo.","Huynh Đệ":"Tình cảm anh chị em ruột thịt, sự hòa thuận gắn kết hoặc chia rẽ trong gia đình."},R={THUY:{name:"Thủy Nhị Cục",num:2,element:"Thủy",color:"#60a5fa"},MOC:{name:"Mộc Tam Cục",num:3,element:"Mộc",color:"#4ade80"},KIM:{name:"Kim Tứ Cục",num:4,element:"Kim",color:"#cbd5e1"},THO:{name:"Thổ Ngũ Cục",num:5,element:"Thổ",color:"#fbbf24"},HOA:{name:"Hỏa Lục Cục",num:6,element:"Hỏa",color:"#f87171"}},wh={"Giáp Tý":"Hải Trung Kim","Ất Sửu":"Hải Trung Kim","Bính Dần":"Lư Trung Hỏa","Đinh Mão":"Lư Trung Hỏa","Mậu Thìn":"Đại Lâm Mộc","Kỷ Tỵ":"Đại Lâm Mộc","Canh Ngọ":"Lộ Bàng Thổ","Tân Mùi":"Lộ Bàng Thổ","Nhâm Thân":"Kiếm Phong Kim","Quý Dậu":"Kiếm Phong Kim","Giáp Tuất":"Sơn Đầu Hỏa","Ất Hợi":"Sơn Đầu Hỏa","Bính Tý":"Giản Hạ Thủy","Đinh Sửu":"Giản Hạ Thủy","Mậu Dần":"Thành Đầu Thổ","Kỷ Mão":"Thành Đầu Thổ","Canh Thìn":"Bạch Lạp Kim","Tân Tỵ":"Bạch Lạp Kim","Nhâm Ngọ":"Dương Liễu Mộc","Quý Mùi":"Dương Liễu Mộc","Giáp Thân":"Tuyền Trung Thủy","Ất Dậu":"Tuyền Trung Thủy","Bính Tuất":"Ốc Thượng Thổ","Đinh Hợi":"Ốc Thượng Thổ","Mậu Tý":"Tích Lịch Hỏa","Kỷ Sửu":"Tích Lịch Hỏa","Canh Dần":"Tùng Bách Mộc","Tân Mão":"Tùng Bách Mộc","Nhâm Thìn":"Trường Lưu Thủy","Quý Tỵ":"Trường Lưu Thủy","Giáp Ngọ":"Sa Trung Kim","Ất Mùi":"Sa Trung Kim","Bính Thân":"Sơn Hạ Hỏa","Đinh Dậu":"Sơn Hạ Hỏa","Mậu Tuất":"Bình Địa Mộc","Kỷ Hợi":"Bình Địa Mộc","Canh Tý":"Bích Thượng Thổ","Tân Sửu":"Bích Thượng Thổ","Nhâm Dần":"Kim Bạch Kim","Quý Mão":"Kim Bạch Kim","Giáp Thìn":"Phú Đăng Hỏa","Ất Tỵ":"Phú Đăng Hỏa","Bính Ngọ":"Thiên Hà Thủy","Đinh Mùi":"Thiên Hà Thủy","Mậu Thân":"Đại Trạch Thổ","Kỷ Dậu":"Đại Trạch Thổ","Canh Tuất":"Thoa Xuyến Kim","Tân Hợi":"Thoa Xuyến Kim","Nhâm Tý":"Tang Đố Mộc","Quý Sửu":"Tang Đố Mộc","Bính Tý":"Giản Hạ Thủy","Đinh Sửu":"Giản Hạ Thủy","Giáp Dần":"Đại Khê Thủy","Ất Mão":"Đại Khê Thủy","Bính Thìn":"Sa Trung Thổ","Đinh Tỵ":"Sa Trung Thổ","Mậu Ngọ":"Thiên Thượng Hỏa","Kỷ Mùi":"Thiên Thượng Hỏa","Canh Thân":"Thạch Lựu Mộc","Tân Dậu":"Thạch Lựu Mộc","Nhâm Tuất":"Đại Hải Thủy","Quý Hợi":"Đại Hải Thủy"},$n={"Tử Vi":{element:"Thổ",group:"Đế Tinh",desc:"Chủ quản tước lộc, quyền uy, thông tuệ, cốt cách cao quý."},"Thiên Cơ":{element:"Mộc",group:"Mưu Tinh",desc:"Chủ mưu lược, trí tuệ, cơ biến, năng khiếu phân tích tính toán."},"Thái Dương":{element:"Hỏa",group:"Quang Tinh",desc:"Chủ quang minh, khẳng khái, quang đại, danh dự và quyền lực."},"Vũ Khúc":{element:"Kim",group:"Tài Tinh",desc:"Chủ tài lộc, kiên định, quả quyết, hành động thực tế và kinh doanh."},"Thiên Đồng":{element:"Thủy",group:"Phúc Tinh",desc:"Chủ phúc thọ, thiện lương, ôn hòa, yêu thích tự do và an nhàn."},"Liêm Trinh":{element:"Hỏa",group:"Tù Tinh",desc:"Chủ liêm khiết, nghiêm khắc, cá tính bộc trực, quy tắc và thử thách."},"Thiên Phủ":{element:"Thổ",group:"Lệnh Tinh",desc:"Chủ kho tàng tài sản, cẩn trọng, đôn hậu, tài chính vững bền."},"Thái Âm":{element:"Thủy",group:"Tài Tinh",desc:"Chủ điền trạch, thẩm mỹ, tế nhị, giàu tình cảm và lãng mạn."},"Tham Lang":{element:"Thủy",group:"Dục Tinh",desc:"Chủ dục vọng, tài nghệ, giao tế, khát khao trải nghiệm và đổi mới."},"Cự Môn":{element:"Thủy",group:"Ám Tinh",desc:"Chủ ngôn ngữ, tài biện luận, hoài nghi, sắc sảo và nghiên cứu sâu."},"Thiên Tướng":{element:"Thủy",group:"Ấn Tinh",desc:"Chủ lòng trắc ẩn, chính trực, bảo trợ, trung thành và uy tín."},"Thiên Lương":{element:"Mộc",group:"Ấm Tinh",desc:"Chủ trường thọ, đạo đức, chở che, bậc trưởng bối và kinh nghiệm."},"Thất Sát":{element:"Kim",group:"Tướng Tinh",desc:"Chủ sát phạt, dũng cảm, quyết đoán, tiên phong độc lập tác chiến."},"Phá Quân":{element:"Thủy",group:"Hao Tinh",desc:"Chủ khai phá, dũng cảm đập bỏ cái cũ để xây dựng cái mới."}},xn={"Tử Vi":["B","Đ","M","B","V","M","M","Đ","M","B","V","B"],"Thiên Cơ":["Đ","Đ","H","M","M","V","Đ","Đ","V","M","M","H"],"Thái Dương":["H","Đ","V","V","V","M","M","Đ","H","H","H","H"],"Vũ Khúc":["V","M","V","Đ","M","H","V","M","V","Đ","M","H"],"Thiên Đồng":["V","H","M","Đ","H","Đ","H","H","M","H","H","Đ"],"Liêm Trinh":["V","Đ","V","H","M","H","V","Đ","V","H","M","H"],"Thiên Phủ":["M","B","M","B","V","Đ","M","Đ","M","B","V","Đ"],"Thái Âm":["V","Đ","H","H","H","H","H","Đ","V","M","M","M"],"Tham Lang":["H","M","Đ","H","V","H","H","M","Đ","H","V","H"],"Cự Môn":["V","H","V","M","H","H","V","H","Đ","M","H","Đ"],"Thiên Tướng":["V","Đ","M","H","V","Đ","V","Đ","M","H","V","Đ"],"Thiên Lương":["V","Đ","V","V","M","H","M","Đ","V","H","M","H"],"Thất Sát":["M","Đ","M","H","H","V","M","Đ","M","H","H","V"],"Phá Quân":["M","V","H","H","Đ","H","M","V","H","H","Đ","H"]},Qn={"Thiên Mã":[null,null,"Đ",null,null,"Đ",null,null,"Đ",null,null,"H"],"Kình Dương":["H","Đ","H","H","Đ","H","H","Đ","H","H","Đ","H"],"Đà La":["H","Đ","H","H","Đ","H","H","Đ","H","H","Đ","H"],"Địa Không":["H","H","Đ","H","H","Đ","H","H","Đ","H","H","Đ"],"Địa Kiếp":["H","H","Đ","H","H","Đ","H","H","Đ","H","H","Đ"],"Hỏa Tinh":["H","H","Đ","Đ","Đ","Đ","Đ","H","H","H","Đ","H"],"Linh Tinh":["H","H","Đ","Đ","Đ","Đ","Đ","H","H","H","Đ","H"],"Thiên Khốc":["Đ","Đ","H","Đ","H","Đ","Đ","Đ","H","Đ","H","Đ"],"Thiên Hư":["Đ","Đ","H","Đ","H","Đ","Đ","Đ","H","Đ","H","Đ"],"Thiên Hình":["H","H","Đ","Đ","Đ","H","H","H","H","Đ","Đ","H"],"Thiên Diêu":["H","H","Đ","Đ","H","H","H","H","H","Đ","Đ","H"],"Văn Xương":["H","Đ","H","H","Đ","Đ","H","Đ","H","Đ","Đ","H"],"Văn Khúc":["H","Đ","H","H","Đ","Đ","H","Đ","H","Đ","Đ","Đ"],"Lộc Tồn":["M",null,"M","M",null,"M","M",null,"M","M",null,"M"]};function Un(t){return(t*2+2)%10}function Xh(t,i){const c=(2+(t-1))%12,e=(c-i+24)%12,h=(c+i)%12;return{menhChiIndex:e,thanChiIndex:h}}function En(t,i){const c=Un(i),e=(t-2+12)%12;return(c+e)%10}function Yh(t,i){const c=En(t,i),e=Math.floor(c/2)+1;let h=0;[0,1,6,7].includes(t)?h=0:[2,3,8,9].includes(t)?h=1:h=2;let g=e+h;return g>5&&(g-=5),g===1?R.KIM:g===2?R.THUY:g===3?R.HOA:g===4?R.THO:R.MOC}function jh(t,i){let c=t,e=i,h=0;c%e!==0&&(h=e-c%e);let g=(c+h)/e,d=0;return h===0||h%2===0?d=(2+(g-1)+h)%12:d=(2+(g-1)-h+24)%12,d}function Fh(t){return[{loc:"Liêm Trinh",quyen:"Phá Quân",khoa:"Vũ Khúc",ky:"Thái Dương"},{loc:"Thiên Cơ",quyen:"Thiên Lương",khoa:"Tử Vi",ky:"Thái Âm"},{loc:"Thiên Đồng",quyen:"Thiên Cơ",khoa:"Văn Xương",ky:"Liêm Trinh"},{loc:"Thái Âm",quyen:"Thiên Đồng",khoa:"Thiên Cơ",ky:"Cự Môn"},{loc:"Tham Lang",quyen:"Thái Âm",khoa:"Hữu Bật",ky:"Thiên Cơ"},{loc:"Vũ Khúc",quyen:"Tham Lang",khoa:"Thiên Lương",ky:"Văn Khúc"},{loc:"Thái Dương",quyen:"Vũ Khúc",khoa:"Thái Âm",ky:"Thiên Đồng"},{loc:"Cự Môn",quyen:"Thái Dương",khoa:"Văn Khúc",ky:"Văn Xương"},{loc:"Thiên Lương",quyen:"Tử Vi",khoa:"Thiên Phủ",ky:"Vũ Khúc"},{loc:"Phá Quân",quyen:"Cự Môn",khoa:"Thái Âm",ky:"Tham Lang"}][t]}function zh(t,i){const c=t%2===0;return{isThuan:i&&c||!i&&!c,amDuongTitle:i?c?"Dương Nam":"Âm Nam":c?"Dương Nữ":"Âm Nữ",isDuongCan:c}}function Wh(t,i){const c=`${t} ${i}`,e=wh[c]||"Sa Trung Kim";let h="Kim";return e.includes("Kim")?h="Kim":e.includes("Mộc")?h="Mộc":e.includes("Thủy")?h="Thủy":e.includes("Hỏa")?h="Hỏa":e.includes("Thổ")&&(h="Thổ"),{napAm:e,element:h}}function Zh(t){const i=["Tham Lang","Cự Môn","Lộc Tồn","Văn Khúc","Liêm Trinh","Vũ Khúc","Phá Quân","Vũ Khúc","Liêm Trinh","Văn Khúc","Lộc Tồn","Cự Môn"],c=["Linh Tinh","Thiên Tướng","Thiên Lương","Thiên Đồng","Văn Xương","Thiên Cơ","Hỏa Tinh","Thiên Tướng","Thiên Lương","Thiên Đồng","Văn Xương","Thiên Cơ"];return{chuMenh:i[t],chuThan:c[t]}}const Jh={"Giáp Tý":12,"Bính Tý":16,"Mậu Tý":15,"Canh Tý":7,"Nhâm Tý":5,"Ất Sửu":9,"Đinh Sửu":8,"Kỷ Sửu":8,"Tân Sửu":7,"Quý Sửu":5,"Bính Dần":6,"Mậu Dần":8,"Canh Dần":9,"Nhâm Dần":9,"Giáp Dần":12,"Đinh Mão":7,"Kỷ Mão":19,"Tân Mão":12,"Quý Mão":12,"Ất Mão":8,"Mậu Thìn":12,"Canh Thìn":12,"Nhâm Thìn":10,"Giáp Thìn":8,"Bính Thìn":8,"Kỷ Tỵ":5,"Tân Tỵ":6,"Quý Tỵ":7,"Ất Tỵ":7,"Đinh Tỵ":6,"Canh Ngọ":9,"Nhâm Ngọ":8,"Giáp Ngọ":15,"Bính Ngọ":13,"Mậu Ngọ":19,"Tân Mùi":8,"Quý Mùi":7,"Ất Mùi":6,"Đinh Mùi":5,"Kỷ Mùi":6,"Nhâm Thân":7,"Giáp Thân":5,"Bính Thân":5,"Mậu Thân":14,"Canh Thân":8,"Quý Dậu":8,"Ất Dậu":15,"Đinh Dậu":14,"Kỷ Dậu":5,"Tân Dậu":16,"Giáp Tuất":5,"Bính Tuất":6,"Mậu Tuất":14,"Canh Tuất":9,"Nhâm Tuất":10,"Ất Hợi":9,"Đinh Hợi":16,"Kỷ Hợi":9,"Tân Hợi":17,"Quý Hợi":7},nt=[0,6,7,18,9,5,16,9,15,18,18,9,5],ht=[0,5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6],tt=[16,6,7,10,9,16,10,8,8,9,6,6];function it(t,i,c,e){const h=Jh[t]||10,g=nt[Math.max(1,Math.min(12,i))]||8,d=ht[Math.max(1,Math.min(30,c))]||10,P=tt[Math.max(0,Math.min(11,e))]||8,f=h+g+d+P,S=Math.floor(f/10),u=f%10;return{luong:S,chi:u,totalPoints:f,totalValue:f/10,text:`${S} lượng ${u} chỉ`}}function Lt({name:t="Quý Khách",gender:i="male",solarDay:c,solarMonth:e,solarYear:h,hourChiIndex:g=0,viewYear:d=new Date().getFullYear(),birthLocation:P="",solarTimeDetails:f=null}){const S=i==="male",u=Ih(c,e,h),H=(u.year+6)%10,m=(u.year+8)%12,v=Q[H],y=k[m],r=(Un(H)+(u.month-1))%10,D=Q[r],l=k[(2+(u.month-1))%12],b=Oh(u.jd),_=b.can,J=b.chi,Gn=(b.canIndex%5*2+g)%10,w=Q[Gn],X=k[g],{menhChiIndex:N,thanChiIndex:O}=Xh(u.month,g),V=Yh(N,H),nn=Wh(v,y),{isThuan:A,amDuongTitle:Rn}=zh(H,S),{chuMenh:wn,chuThan:Xn}=Zh(m),Yn=A?"Âm Dương Thuận Lý (Cuộc đời hanh thông, gặp thời)":"Âm Dương Nghịch Lý (Cần nỗ lực vượt khó để thành công)",jn={Kim:{Thủy:"Mệnh sinh Cục",Mộc:"Mệnh khắc Cục",Hỏa:"Cục khắc Mệnh",Thổ:"Cục sinh Mệnh",Kim:"Mệnh Cục Tỷ Hòa"},Mộc:{Hỏa:"Mệnh sinh Cục",Thổ:"Mệnh khắc Cục",Kim:"Cục khắc Mệnh",Thủy:"Cục sinh Mệnh",Mộc:"Mệnh Cục Tỷ Hòa"},Thủy:{Mộc:"Mệnh sinh Cục",Hỏa:"Mệnh khắc Cục",Thổ:"Cục khắc Mệnh",Kim:"Cục sinh Mệnh",Thủy:"Mệnh Cục Tỷ Hòa"},Hỏa:{Thổ:"Mệnh sinh Cục",Kim:"Mệnh khắc Cục",Thủy:"Cục khắc Mệnh",Mộc:"Cục sinh Mệnh",Hỏa:"Mệnh Cục Tỷ Hòa"},Thổ:{Kim:"Mệnh sinh Cục",Thủy:"Mệnh khắc Cục",Mộc:"Cục khắc Mệnh",Hỏa:"Cục sinh Mệnh",Thổ:"Mệnh Cục Tỷ Hòa"}}[nn.element]?.[V.element]||"Mệnh Cục Tỷ Hòa";let $=0;[8,0,4].includes(m)?$=10:[2,6,10].includes(m)?$=4:[5,9,1].includes(m)?$=7:$=1;const a=[];for(let n=0;n<12;n++){const s=(n-N+12)%12,o=Rh[s],M=En(n,H);let q=0;if(A){const on=(n-N+12)%12;q=V.num+on*10}else{const on=(N-n+12)%12;q=V.num+on*10}const x=q+9,Z=S?(n-$+12)%12:($-n+12)%12,Bn=(m+Z)%12,Qh=k[Bn];a.push({chiIndex:n,chiName:k[n],chiElement:qn[n],chiSign:An[n],chiElementFull:`${An[n]}${qn[n]}`,canIndex:M,canName:Q[M],fullName:`${Q[M]} ${k[n]}`,cungName:o,isThan:n===O,isMenh:n===N,daiHan:`${q} - ${x}`,daiHanStart:q,daiHanEnd:x,tieuHanChi:Qh,tieuHanChiIndex:Bn,mainStars:[],goodStars:[],badStars:[]})}const B=a.find(n=>n.canIndex===H),Fn=B?B.cungName:"",zn=B?B.chiName:"",Wn=B?`${B.cungName} (tại ${B.chiName})`:"",Zn=it(`${v} ${y}`,u.month,u.day,g),gn=jh(u.day,V.num);[{name:"Tử Vi",offset:0},{name:"Thiên Cơ",offset:-1},{name:"Thái Dương",offset:-3},{name:"Vũ Khúc",offset:-4},{name:"Thiên Đồng",offset:-5},{name:"Liêm Trinh",offset:-8}].forEach(n=>{const s=(gn+n.offset+24)%12,o=$n[n.name],M=xn[n.name][s];a[s].mainStars.push({name:n.name,element:o.element,brightness:M,desc:o.desc})});const Jn=(4-gn+24)%12;[{name:"Thiên Phủ",offset:0},{name:"Thái Âm",offset:1},{name:"Tham Lang",offset:2},{name:"Cự Môn",offset:3},{name:"Thiên Tướng",offset:4},{name:"Thiên Lương",offset:5},{name:"Thất Sát",offset:6},{name:"Phá Quân",offset:10}].forEach(n=>{const s=(Jn+n.offset)%12,o=$n[n.name],M=xn[n.name][s];a[s].mainStars.push({name:n.name,element:o.element,brightness:M,desc:o.desc})});const un=(4+(u.month-1))%12,sn=(10-(u.month-1)+24)%12;a[un].goodStars.push({name:"Tả Phù",element:"Thổ",desc:"Quý nhân tương trợ, phò tá đắc lực"}),a[sn].goodStars.push({name:"Hữu Bật",element:"Thủy",desc:"Bạn bè giúp sức, đồng lòng hỗ trợ"});const mn=(10-g+24)%12,hn=(4+g)%12;a[mn].goodStars.push({name:"Văn Xương",element:"Kim",desc:"Văn chương khoa bảng, tài hoa tuấn nhã"}),a[hn].goodStars.push({name:"Văn Khúc",element:"Thủy",desc:"Nghệ thuật thi ca, ứng biến linh hoạt"});const Tn=[{khoi:1,viet:7},{khoi:0,viet:8},{khoi:11,viet:9},{khoi:11,viet:9},{khoi:1,viet:7},{khoi:0,viet:8},{khoi:1,viet:7},{khoi:6,viet:2},{khoi:3,viet:5},{khoi:3,viet:5}][H];a[Tn.khoi].goodStars.push({name:"Thiên Khôi",element:"Hỏa",desc:"Đệ nhất quý nhân, đứng đầu khoa giáp"}),a[Tn.viet].goodStars.push({name:"Thiên Việt",element:"Hỏa",desc:"Quý nhân phù trợ, cơ hội bất ngờ"});const U=[2,3,5,6,5,6,8,9,11,0][H],rn=(U+1)%12,nh=(U-1+12)%12;a[U].goodStars.push({name:"Lộc Tồn",element:"Thổ",desc:"Trời ban tài lộc, tích lũy điền sản"}),a[rn].badStars.push({name:"Kình Dương",element:"Kim",desc:"Cương cường, sát phạt, trở ngại chông gai"}),a[nh].badStars.push({name:"Đà La",element:"Kim",desc:"Trì trệ, thị phi, dây dưa khó dứt"}),[{name:"Bác Sĩ",good:!0,element:"Thủy",desc:"Thông minh, tài trí, nhân hậu, thọ trường"},{name:"Lực Sĩ",good:!0,element:"Hỏa",desc:"Dũng mãnh, có quyền lực phò trợ"},{name:"Thanh Long",good:!0,element:"Thủy",desc:"May mắn thuận lợi, giải trừ hung hiểm, hỷ sự"},{name:"Tiểu Hao",good:!1,element:"Hỏa",desc:"Hao tán tài sản vi tế, tiêu xài lặt vặt"},{name:"Tướng Quân",good:!1,element:"Mộc",desc:"Uy quyền, dũng lược, xông pha trận mạc"},{name:"Tấu Thư",good:!0,element:"Kim",desc:"Văn chương bằng sắc, tài khéo nói năng biểu đạt"},{name:"Phi Liêm",good:!1,element:"Hỏa",desc:"Thị phi, nhanh chóng bất ngờ, trở ngại dây dưa"},{name:"Hỷ Thần",good:!0,element:"Hỏa",desc:"Tin vui, tiệc tùng, hỷ khí gia đạo"},{name:"Bệnh Phù",good:!1,element:"Thổ",desc:"Ốm đau vặt, hao tổn sinh lực, kém dẻo dai"},{name:"Đại Hao",good:!1,element:"Hỏa",desc:"Đại bại hao tán tiền của, biến động lớn"},{name:"Phục Binh",good:!1,element:"Hỏa",desc:"Tiểu nhân ngấm ngầm hãm hại, rình rập"},{name:"Quan Phủ",good:!1,element:"Hỏa",desc:"Thị phi kiện tụng, khẩu thiệt dính líu pháp lý"}].forEach((n,s)=>{const o=A?(U+s)%12:(U-s+24)%12;n.good?a[o].goodStars.push({name:n.name,element:n.element,desc:n.desc}):a[o].badStars.push({name:n.name,element:n.element,desc:n.desc})});const hh=(11-g+24)%12,th=(11+g)%12;a[hh].badStars.push({name:"Địa Không",element:"Hỏa",desc:"Bất ngờ thăng trầm, tư duy khác biệt"}),a[th].badStars.push({name:"Địa Kiếp",element:"Hỏa",desc:"Tổn hao tài lộc, thăng trầm sóng gió"});const Y=[{hoa:2,linh:10},{hoa:3,linh:10},{hoa:1,linh:3},{hoa:9,linh:10},{hoa:2,linh:10},{hoa:3,linh:10},{hoa:1,linh:3},{hoa:9,linh:10},{hoa:2,linh:10},{hoa:3,linh:10},{hoa:1,linh:3},{hoa:9,linh:10}][m],ih=A?(Y.hoa+g)%12:(Y.hoa-g+24)%12,ch=A?(Y.linh-g+24)%12:(Y.linh+g)%12;a[ih].badStars.push({name:"Hỏa Tinh",element:"Hỏa",desc:"Bộc trực nóng nảy, phát triển thần tốc"}),a[ch].badStars.push({name:"Linh Tinh",element:"Hỏa",desc:"Âm ỉ kiên nhẫn, thử thách tinh thần"});const tn=[2,11,8,5,2,11,8,5,2,11,8,5][m];a[tn].goodStars.push({name:"Thiên Mã",element:"Hỏa",desc:"Năng động, di chuyển, tài lộc bôn ba"});const ah=[9,6,3,0,9,6,3,0,9,6,3,0][m],ln=(3-m+24)%12,eh=(ln+6)%12;a[ah].goodStars.push({name:"Đào Hoa",element:"Mộc",desc:"Duyên dáng, thu hút nhân duyên"}),a[ln].goodStars.push({name:"Hồng Loan",element:"Thủy",desc:"Tình duyên hỷ sự, vui vẻ tao nhã"}),a[eh].goodStars.push({name:"Thiên Hỷ",element:"Thủy",desc:"Tin vui may mắn, hòa thuận gia đình"});const oh=(6-m+24)%12,gh=(6+m)%12;a[oh].badStars.push({name:"Thiên Khốc",element:"Thủy",desc:"Âu sầu bi ai, nhưng đắc địa thì tiếng tăm vang xa"}),a[gh].badStars.push({name:"Thiên Hư",element:"Thủy",desc:"Hao tán hư hao, lo toan vất vả"});const uh=(4+m)%12,dn=(10-m+24)%12;a[uh].goodStars.push({name:"Long Trì",element:"Thủy",desc:"Thanh tú quý phái, văn học nghệ thuật"}),a[dn].goodStars.push({name:"Phượng Các",element:"Thổ",desc:"Đài các trang nhã, thi cử hanh thông"}),a[dn].goodStars.push({name:"Giải Thần",element:"Mộc",desc:"Tiêu tai giải ách, hóa giải hung họa"});const Hn=[{co:2,qua:10},{co:2,qua:10},{co:5,qua:1},{co:5,qua:1},{co:5,qua:1},{co:8,qua:4},{co:8,qua:4},{co:8,qua:4},{co:11,qua:7},{co:11,qua:7},{co:11,qua:7},{co:2,qua:10}][m];a[Hn.co].badStars.push({name:"Cô Thần",element:"Thổ",desc:"Cô độc nội tâm, tính tình trầm mặc, tự lập"}),a[Hn.qua].badStars.push({name:"Quả Tú",element:"Thổ",desc:"Lẻ loi khép kín, giữ gìn tài sản cẩn mật"});const pn=[{quan:7,phuc:9},{quan:4,phuc:8},{quan:5,phuc:0},{quan:2,phuc:11},{quan:3,phuc:3},{quan:9,phuc:2},{quan:11,phuc:6},{quan:9,phuc:5},{quan:10,phuc:6},{quan:6,phuc:5}][H];a[pn.quan].goodStars.push({name:"Thiên Quan",element:"Hỏa",desc:"Quý nhân phò trợ, tâm tính hướng thiện"}),a[pn.phuc].goodStars.push({name:"Thiên Phúc",element:"Thổ",desc:"Phúc lộc thọ khảo, cứu khổ trừ nguy"});const E=n=>(n%12+12)%12,p=(n,s,o,M)=>a[E(n)].goodStars.push({name:s,element:o,desc:M}),L=(n,s,o,M)=>a[E(n)].badStars.push({name:s,element:o,desc:M}),Cn=u.month%12;p(Cn,"Thiên Y","Thổ","Chủ về sức khỏe, quý nhân cứu tế, tai qua nạn khỏi"),L(Cn,"Thiên Diêu","Mộc","Phong tình, duyên dáng, dễ vướng chuyện tình cảm thị phi"),p(N+m,"Thiên Tài","Thổ","Tài năng trí tuệ, học rộng hiểu nhiều, khéo tính toán"),p(O+m,"Thiên Thọ","Thổ","Trường thọ, phúc hậu, được hưởng phúc ấm lâu dài");const sh=[5,6,0,5,6,8,2,6,9,10],mh=[9,10,7,8,5,6,8,3,11,2];p(sh[H],"Thiên Trù","Thổ","Lộc ăn uống, kho tàng thực phẩm, được hưởng của ngon vật lạ"),L(mh[H],"Lưu Hà","Thủy","Dòng nước chảy xiết, tai nạn sông nước, bệnh tật âm ỉ"),L(u.month+8,"Thiên Hình","Hỏa","Hình phạt, pháp luật, bệnh tật, tính tình cương trực"),p(un+u.day-1,"Tam Thai","Mộc","May mắn, uy quyền, được hưởng phúc lộc trời ban"),p(sn-(u.day-1),"Bát Tọa","Thủy","Địa vị, chỗ ngồi sang trọng, được người kính trọng");const Mn=E(mn+u.day-2);p(Mn,"Ân Quang","Mộc","Ơn trên ban thưởng, may mắn được che chở, giải trừ tai họa"),p(2-Mn,"Thiên Quý","Thổ","Quý nhân phù trợ, được nâng đỡ trong lúc khó khăn"),p(hn+2,"Thai Phụ","Kim","Sản phụ, quý nhân nâng đỡ, công danh hanh thông"),p(hn-2,"Phong Cáo","Thổ","Chiếu chỉ ban thưởng, chức tước, vinh hiển");const yn=E(rn+2),bn=E(yn+2);p(yn,"Văn Tinh","Kim","Văn chương, học vấn, thi cử đỗ đạt"),p(bn,"Đường Phù","Mộc","Đường công danh rộng mở, quý nhân dẫn đường"),p(bn+3,"Quốc Ấn","Thổ","Ấn tín quốc gia, quyền lực, chức vị quan trọng"),p(tn+2,"Hoa Cái","Kim","Tài hoa nghệ thuật, phong thái thanh cao, tôn quý"),L(tn+3,"Kiếp Sát","Hỏa","Tai nạn bất ngờ, trở ngại, hao tổn sức lực"),L([5,1,9][m%3],"Phá Toái","Kim","Hao tán, rạn nứt, công việc dở dang khó thành"),L(m+g-u.month+1,"Đẩu Quân","Hỏa","Tính toán, mưu lược, nhưng dễ cô độc, khắc nghiệt"),p(m+9,"Thiên Đức","Thủy","Đức độ, lòng nhân từ, được trời ban phúc lành"),p(m+5,"Nguyệt Đức","Thủy","Đức hạnh, hiền lành, giải trừ tai ương"),p(u.month+7,"Thiên Giải","Mộc","Giải trừ tai ách, hóa hung thành cát"),p(u.month+6,"Địa Giải","Thổ","Tiêu trừ bệnh tật, tai nạn, gặp dữ hóa lành"),L(4,"Thiên La","Thổ","Lưới trời, trói buộc, trở ngại trong công việc"),L(10,"Địa Võng","Thổ","Lưới đất, gò bó, khó thoát khỏi vòng luẩn quẩn"),L(N+5,"Thiên Thương","Thổ","Tổn thương, bệnh tật, tai nạn bất ngờ"),L(N+7,"Thiên Sứ","Thủy","Sứ giả tai ương, bệnh tật, hiểm nguy"),L(m+1,"Thiên Không","Hỏa","Hư không, thăng trầm, công việc dễ đổ vỡ giữa chừng");const j=Fh(H);a.forEach(n=>{[...n.mainStars,...n.goodStars,...n.badStars].forEach(o=>{o.name===j.loc&&(o.hoa={name:"Hóa Lộc",type:"good",isOrigin:!0}),o.name===j.quyen&&(o.hoa={name:"Hóa Quyền",type:"good",isOrigin:!0}),o.name===j.khoa&&(o.hoa={name:"Hóa Khoa",type:"good",isOrigin:!0}),o.name===j.ky&&(o.hoa={name:"Hóa Kỵ",type:"bad",isOrigin:!0})})}),[{name:"Thái Tuế",good:!1},{name:"Thiếu Dương",good:!0},{name:"Tang Môn",good:!1},{name:"Thiếu Âm",good:!0},{name:"Quan Phù",good:!1},{name:"Tử Phù",good:!1},{name:"Tuế Phá",good:!1},{name:"Long Đức",good:!0},{name:"Bạch Hổ",good:!1},{name:"Phúc Đức",good:!0},{name:"Điếu Khách",good:!1},{name:"Trực Phù",good:!1}].forEach((n,s)=>{const o=(m+s)%12;n.good?a[o].goodStars.push({name:n.name,element:"Thổ"}):a[o].badStars.push({name:n.name,element:"Kim"})});const fn={"Thủy Nhị Cục":8,"Mộc Tam Cục":11,"Kim Tứ Cục":5,"Hỏa Lục Cục":2,"Thổ Ngũ Cục":8}[V.name]||8;["Tràng Sinh","Mộc Dục","Quan Đới","Lâm Quan","Đế Vượng","Suy","Bệnh","Tử","Mộ","Tuyệt","Thai","Dưỡng"].forEach((n,s)=>{const o=A?(fn+s)%12:(fn-s+24)%12;a[o].trangSinh=n});const Sn=(m-H+12)%12,Th=(Sn+10)%12,rh=(Sn+11)%12;a[Th].hasTuan=!0,a[rh].hasTuan=!0;const Nn=[[8,9],[6,7],[4,5],[2,3],[0,1]][H%5];a[Nn[0]].hasTriet=!0,a[Nn[1]].hasTriet=!0;const cn=d-h+1,F=a.find(n=>cn>=n.daiHanStart&&cn<=n.daiHanEnd)||a[N],lh=F.chiIndex,vn=["MỆNH","PHỤ","PHÚC","ĐIỀN","QUAN","NÔ","DI","TẬT","TÀI","TỬ","PHỐI","HUYNH"];for(const n of a){const s=(n.chiIndex-lh+12)%12;n.dvCungChuc=`ĐV.${vn[s]}`}const z=(d+6)%10,K=(d+8)%12,dh=Q[z],Ln=k[K];for(const n of a){const s=(n.chiIndex-K+12)%12;n.lnCungChuc=`LN.${vn[s]}`}const an=[2,3,5,6,5,6,8,9,11,0][z],Hh=(an+1)%12,ph=(an-1+12)%12,Ch=K,Mh=(K+2)%12,yh=(K+8)%12,bh={2:8,6:8,10:8,8:2,0:2,4:2,5:11,9:11,1:11,11:5,3:5,7:5}[K],fh=(6-K+12)%12,Sh=(6+K)%12,Nh={8:9,0:9,4:9,2:3,6:3,10:3,5:6,9:6,1:6,11:0,3:0,7:0}[K],vh=(3-K+12)%12,Lh=[[1,7],[0,8],[11,9],[11,9],[1,7],[0,8],[1,7],[2,6],[3,5],[3,5]],[Ph,Kh]=Lh[z],kh=[["Liêm Trinh","Phá Quân","Vũ Khúc","Thái Dương"],["Thiên Cơ","Thiên Lương","Tử Vi","Thái Âm"],["Thiên Đồng","Thiên Cơ","Văn Xương","Liêm Trinh"],["Thái Âm","Thiên Đồng","Thiên Cơ","Cự Môn"],["Tham Lang","Thái Âm","Hữu Bật","Thiên Cơ"],["Vũ Khúc","Tham Lang","Thiên Lương","Văn Khúc"],["Thái Dương","Vũ Khúc","Thiên Đồng","Thái Âm"],["Cự Môn","Thái Dương","Văn Khúc","Văn Xương"],["Thiên Lương","Tử Vi","Thiên Phủ","Vũ Khúc"],["Phá Quân","Cự Môn","Thái Âm","Tham Lang"]],[Vh,Dh,_h,Bh]=kh[z],C=(n,s,o="good",M="Kim",q=!1)=>{const x=a[n];if(!x)return;const Z={name:`L.${s}`,isLuu:!0,isLuuHoa:q,element:M};o==="good"?x.goodStars.push(Z):x.badStars.push(Z)};C(an,"Lộc Tồn","good","Thổ"),C(bh,"Thiên Mã","good","Hỏa"),C(Ph,"Thiên Khôi","good","Hỏa"),C(Kh,"Thiên Việt","good","Hỏa"),C(vh,"Hồng Loan","good","Thủy"),C(Nh,"Đào Hoa","good","Mộc"),C(Ch,"Thái Tuế","bad","Hỏa"),C(Hh,"Kình Dương","bad","Kim"),C(ph,"Đà La","bad","Kim"),C(Mh,"Tang Môn","bad","Mộc"),C(yh,"Bạch Hổ","bad","Kim"),C(fh,"Thiên Khốc","bad","Thủy"),C(Sh,"Thiên Hư","bad","Thủy");const W=n=>a.find(s=>s.mainStars.some(o=>o.name===n)||s.goodStars.some(o=>o.name===n)||s.badStars.some(o=>o.name===n)),Pn=W(Vh);Pn&&C(Pn.chiIndex,"Hóa Lộc","good","Mộc",!0);const Kn=W(Dh);Kn&&C(Kn.chiIndex,"Hóa Quyền","good","Hỏa",!0);const kn=W(_h);kn&&C(kn.chiIndex,"Hóa Khoa","good","Thủy",!0);const Vn=W(Bh);Vn&&C(Vn.chiIndex,"Hóa Kỵ","bad","Thủy",!0),a.forEach(n=>{const s=n.chiIndex;[...n.goodStars||[],...n.badStars||[]].forEach(o=>{if(!o.isLuu&&Qn[o.name]){const M=Qn[o.name][s];M&&(o.brightness=M)}})});const Dn=a[N],G=a[O],qh=a.find(n=>n.cungName==="Quan Lộc"),Ah=a.find(n=>n.cungName==="Tài Bạch"),$h=a.find(n=>n.cungName==="Phu Thê"),_n=a.find(n=>n.tieuHanChi===Ln)||Dn,xh=O===N?"Thân Mệnh Đồng Cung":`Thân cư ${G.cungName} (tại ${G.chiName})`,en={profile:{name:t,chartId:Math.abs(((h*1e4+e*100+c)*31+(g||0)*7+(u.month||1))%9e5+1e5).toString(),gender:S?"Nam":"Nữ",solarDate:`${c}/${e}/${h}`,lunarDate:`${u.day}/${u.month}/${u.year}${u.leap?" (nhuận)":""}`,canChiYear:`${v} ${y}`,canChiMonth:`${D} ${l}`,canChiDay:`${_} ${J}`,canChiHour:`${w} ${X}`,hourName:`Giờ ${w} ${X}`,tuTru:{year:`${v} ${y}`,month:`${D} ${l}`,day:`${_} ${J}`,hour:`${w} ${X}`,text:`Năm ${v} ${y} • Tháng ${D} ${l} • Ngày ${_} ${J} • Giờ ${w} ${X}`},thanCuText:xh,thanCuCungName:G.cungName,thanCuChiName:G.chiName,tieuHanViewYearText:`${_n.cungName} (tại ${_n.chiName})`,daiHanViewYearText:`Đại Vận ${F.cungName} (${F.daiHan} tuổi)`,amDuongNamNu:Rn,banMenh:nn.napAm,banMenhElement:nn.element,cuc:V.name,cucNum:V.num,cucElement:V.element,chuMenh:wn,chuThan:Xn,amDuongLy:Yn,menhCucStatus:jn,currentAge:cn,viewYear:d,viewYearCanChi:`${dh} ${Ln}`,cungMenhChi:k[N],cungThanChi:k[O],laiNhanCung:Fn,laiNhanChi:zn,laiNhanFull:Wn,canLuong:Zn,birthLocation:P,solarTimeDetails:f},cungList:a,cungMenh:Dn,cungThan:G,cungQuan:qh,cungTai:Ah,cungPhu:$h,currentDaiHanCung:F};return en.patterns=Gh(en),en}function Pt(t){const i=t.profile,c=t.cungMenh,e=c.mainStars.map(r=>`${r.name} (${r.brightness})`).join(", ")||"Vô Chính Diệu";let h=`Đương số **${i.name}**, sinh năm **${i.canChiYear}** (${i.amDuongNamNu}), thuộc nạp âm bản mệnh **${i.banMenh}** (${i.banMenhElement}), đắc **${i.cuc}**.
+
+`;if(h+=`* **Tương quan Âm Dương & Cục Mệnh**: Lá số mang cách ${i.amDuongLy}. Về Cục và Mệnh: **${i.menhCucStatus}**, báo hiệu đường đời có nền tảng vững vàng, nếu biết tận dụng thời cơ sẽ dễ dàng gặt hái thành tựu vượt bậc.
+`,h+=`* **Cung Mệnh an tại ${i.cungMenhChi}**: Có các chính tinh tọa thủ: **${e}**. Chủ mệnh là **${i.chuMenh}**, chủ thân là **${i.chuThan}**.
+`,c.mainStars.length===0)h+=`* **Đặc tính Mệnh Vô Chính Diệu**: Người thông minh, linh hoạt, khả năng thích nghi ngoại cảnh rất cao, dễ hòa nhập với nhiều môi trường khác nhau, giỏi nắm bắt xu hướng thời đại.
+`;else{const r=c.mainStars.map(D=>`Sao **${D.name}** (${D.desc})`).join("; ");h+=`* **Đặc tính cốt lõi**: ${r}.
+`}t.patterns&&t.patterns.length>0&&(h+=`* **Cách Cục Nổi Bật**: Đương số đắc cách ${t.patterns.map(r=>`**${r.name}** (${r.tag})`).join(", ")}. ${t.patterns[0].summary}
+`);const g=t.cungQuan,d=g.mainStars.map(r=>r.name).join(", ")||"Vô Chính Diệu";let P=`Cung Quan Lộc tọa tại **${g.chiName}**, có các sao: **${d}**.
+`;g.mainStars.some(r=>["Tử Vi","Thiên Tướng","Thất Sát","Vũ Khúc","Thái Dương"].includes(r.name))?P+=`Bạn có tố chất lãnh đạo, quyết đoán và thích nắm giữ quyền hạn chủ động. Thích hợp với các vị trí quản lý, khởi nghiệp kinh doanh độc lập hoặc công tác trong các tổ chức có quy mô lớn.
+`:g.mainStars.some(r=>["Thiên Cơ","Thái Âm","Cự Môn","Văn Xương","Văn Khúc"].includes(r.name))?P+=`Bạn có thiên hướng trí tuệ, mưu lược, giao tiếp và sáng tạo nghệ thuật. Phù hợp các ngành công nghệ, cố vấn chiến lược, truyền thông, tài chính hoặc đào tạo nghiên cứu.
+`:P+=`Đường sự nghiệp chuộng sự đa năng, phát triển theo từng giai đoạn và rất cần sự bền bỉ. Khi gặp đúng thời cơ sẽ thăng tiến bất ngờ.
+`;const f=t.cungTai,S=f.mainStars.map(r=>r.name).join(", ")||"Vô Chính Diệu";let u=`Cung Tài Bạch tọa tại **${f.chiName}**, quy tụ các sao: **${S}**.
+`;f.goodStars.some(r=>r.name==="Lộc Tồn")||f.mainStars.some(r=>r.hoa?.name==="Hóa Lộc")?u+=`Đắc cách Lộc tinh chiếu mệnh, có duyên tiền tài dồi dào, biết cách giữ của và tái đầu tư sinh lời bền vững.
+`:u+=`Tiền tài tụ tán tùy theo thời vận, nên chú trọng quản lý tài chính an toàn, tránh đầu tư mạo hiểm vào các lĩnh vực chưa nắm rõ.
+`;const H=t.cungPhu,m=H.mainStars.map(r=>r.name).join(", ")||"Vô Chính Diệu";let v=`Cung Phu Thê an tại **${H.chiName}**, có tinh hệ: **${m}**.
+`;v+=`Người bạn đời có cá tính rõ rệt, có học thức hoặc đảm đang. Hôn nhân nên lấy sự thấu hiểu, lắng nghe và nhường nhịn làm gốc để giữ gìn tổ ấm hạnh phúc trọn vẹn.
+`;const y=t.currentDaiHanCung;let I=`Hiện tại ở tuổi **${i.currentAge}** (năm ${i.viewYear}), đương số đang bước vào **Đại Vận ${y.daiHan} tuổi** tại cung **${y.chiName}** (${y.cungName}).
+
+`;return I+=`Giai đoạn này là mốc bản lề chuyển dịch vận số quan trọng. Hãy chủ động củng cố nền tảng kiến thức, mở rộng các mối quan hệ tích cực và giữ tâm thế vững vàng trước mọi biến động cuộc sống.
+`,{overview:h,career:P,wealth:u,love:v,forecast:I}}
+window.__tuvi = { generateChart: Lt, analyzeChart: Pt, CHI_HOURS: vt };
+})();
+
+(function(){
+const i=[{stars:["Tử Vi"],palaces:["Mệnh","Thân"],quote:"Tử Vi là Đế tinh, thuộc Thổ, tính trầm ổn khoan dung. Tử Vi nhập Mệnh thì cốt cách cao quý, có phong thái lãnh tụ chỉ huy. Nhưng Tử Vi tối kỵ cô quân vô phụ, phải cần Tả Phụ Hữu Bật phò tá như vua có quân sư tướng tá.",episode:"Tập 2",timestamp:"00:18:42",tag:"Đế Tinh Nhập Mệnh"},{stars:["Tử Vi"],palaces:["Quan Lộc","Tài Bạch"],quote:"Tử Vi tọa Quan Lộc hay Tài Bạch là tượng quyền quý, thích hợp đứng đầu doanh nghiệp, làm chủ sự nghiệp hoặc giữ trọng trách lớn, không chịu khuất phục dưới trướng người khác.",episode:"Tập 3",timestamp:"00:24:15",tag:"Quan Lộc Tác Quyền"},{stars:["Thiên Cơ"],palaces:[],quote:"Thiên Cơ là Thiện tinh, chủ về trí tuệ, cơ mưu, biến hóa linh hoạt. Thiên Cơ gặp Lộc Quyền là mưu sĩ xuất chúng, giỏi tham mưu hoạch định chiến lược, trí não làm việc không ngừng nghỉ.",episode:"Tập 3",timestamp:"00:35:10",tag:"Trí Tuệ Cơ Mưu"},{stars:["Thái Dương"],palaces:["Mệnh","Quan Lộc"],quote:"Thái Dương là Quang minh chi tinh, chủ về phụ thân, phu quân (nữ mệnh) và danh vọng sự nghiệp. Đắc địa tại Dần Mão Thìn Tỵ Ngọ thì phát quang rực rỡ, tính tình cương trực, quang minh lỗi lạc.",episode:"Tập 4",timestamp:"00:12:05",tag:"Quang Minh Chính Đại"},{stars:["Vũ Khúc"],palaces:["Tài Bạch","Mệnh"],quote:"Vũ Khúc là Tài tinh tối thượng trong Đẩu Số, thuộc Kim. Vũ Khúc tính tình quyết đoán, cương nghị, thực tế, hành động quyết liệt và có tài quản lý tiền bạc bẩm sinh.",episode:"Tập 4",timestamp:"00:41:20",tag:"Chính Tài Chi Tinh"},{stars:["Thiên Đồng"],palaces:[],quote:"Thiên Đồng là Phúc tinh, chủ về hưởng thụ, hòa nhã, nhân hậu. Thiên Đồng ngộ cát tinh thì vô tai vô nạn, tính tình đôn hậu, thích an nhàn nhưng nếu gặp sát tinh kích phát thì mới chịu bứt phá lập nghiệp.",episode:"Tập 5",timestamp:"00:15:30",tag:"Phúc Tinh Hóa Khí"},{stars:["Liêm Trinh"],palaces:["Mệnh","Thân","Quan Lộc"],quote:"Liêm Trinh là Thứ Đào Hoa kiêm Tù tinh. Khi hóa khí thành Tù tinh thì kỷ luật thép, nghiêm cẩn, liêm chính; khi hóa Đào hoa thì phong lưu, tài hoa, có khiếu ngoại giao sắc bén.",episode:"Tập 5",timestamp:"00:48:15",tag:"Nghiêm Cẩn Kỷ Luật"},{stars:["Thiên Phủ"],palaces:["Mệnh","Tài Bạch","Điền Trạch"],quote:"Thiên Phủ là Lệnh tinh, là kho bạc cất giữ của cải trong trời đất. Thiên Phủ tính tình cẩn trọng, giữ chữ tín, biết tích lũy, có số giữ tiền muôn bạc vạn, gia đình hưng thịnh vững bền.",episode:"Tập 6",timestamp:"00:20:00",tag:"Thiên Kho Tụ Bảo"},{stars:["Thái Âm"],palaces:["Mệnh","Tài Bạch","Phu Thê"],quote:"Thái Âm là Mẫu tinh, chủ về mẫu thân, vợ hiền và tài lộc điền sản êm đềm. Thái Âm đắc địa thì tâm hồn thanh khiết, ôn nhuận tế nhị, giàu có về bất động sản và hậu vận sung túc.",episode:"Tập 6",timestamp:"00:52:10",tag:"Thanh Khiết Điền Sản"},{stars:["Tham Lang"],palaces:["Mệnh","Thân","Tài Bạch"],quote:"Tham Lang là Đào hoa tối thượng kiêm dục vọng và tài hoa nghệ thuật. Tham Lang ngộ Hỏa Tinh hoặc Linh Tinh tạo thành cách Hỏa Tham/Linh Tham thì bạo phát tài lộc, lập đại công danh ngoài thương trường.",episode:"Tập 7",timestamp:"00:16:45",tag:"Hỏa Tham Bạo Phát"},{stars:["Cự Môn"],palaces:[],quote:"Cự Môn là Ám tinh, chủ về khẩu tài, hùng biện, điều tra và ngôn ngữ. Cự Môn đắc địa hoặc hóa Quyền Lộc thì một lời nói định càn khôn, thích hợp luật sư, diễn thuyết gia, ngoại giao bậc thầy.",episode:"Tập 8",timestamp:"00:22:30",tag:"Khẩu Tài Hùng Biện"},{stars:["Thiên Tướng"],palaces:[],quote:"Thiên Tướng là Ấn tinh, chưởng quản đại quyền và công lý. Thiên Tướng trung thành, đoan chính, trọng danh dự, là cánh tay đắc lực của nguyên thủ, phụng sự tập thể hết lòng.",episode:"Tập 8",timestamp:"00:58:15",tag:"Ấn Tinh Chưởng Quyền"},{stars:["Thiên Lương"],palaces:[],quote:"Thiên Lương là Ấm tinh, Thọ tinh, chủ về phước đức bảo bọc và giải ách trừ nguy. Thiên Lương ngộ nạn hóa lành, có tính cách trưởng thượng, bao dung, thích làm từ thiện và nghiên cứu triết học, y thuật.",episode:"Tập 9",timestamp:"00:29:40",tag:"Ấm Tinh Hóa Nạn"},{stars:["Thất Sát"],palaces:["Mệnh","Thân","Quan Lộc"],quote:"Thất Sát là Thượng tướng quân, tính tình quả cảm, dũng mãnh, một mình dám gánh vác việc lớn. Thất Sát triều đẩu thì công danh hiển hách sau 30 tuổi, trải qua rèn luyện sóng gió ắt nên nghiệp lớn.",episode:"Tập 10",timestamp:"00:14:20",tag:"Thượng Tướng Xung Trận"},{stars:["Phá Quân"],palaces:["Mệnh","Thân"],quote:"Phá Quân là Tiên phong dũng tướng, chủ về phá cũ đổi mới, sáng tạo không ngừng. Phá Quân đi trước mở đường, không ngại gian khó, dấn thân vào những lĩnh vực mới mẻ tiên phong.",episode:"Tập 11",timestamp:"00:33:50",tag:"Phá Cũ Lập Mới"},{stars:[],palaces:["Mệnh"],quote:"Mệnh Vô Chính Diệu như cung điện không vua, tâm tính linh hoạt, thích nghi nhanh với mọi hoàn cảnh. Phải mượn sao xung chiếu từ cung Thiên Di sang để luận, có cát tinh hội chiếu vẫn đại phát thành tài.",episode:"Tập 12",timestamp:"00:45:00",tag:"Linh Hoạt Biến Ảo"},{stars:[],palaces:["Phu Thê"],quote:"Xem cung Phu Thê cốt ở chữ Hòa. Dù có sát tinh phạm vào cũng đừng hoảng hốt, Thầy Nghê dạy phép Địa Kỷ dùng phương vị Tây Bắc (Càn) hoặc Tây Nam (Khôn) đặt phòng ngủ để hóa giải, lấy đức hạnh bù khuyết điểm.",episode:"Tập 13",timestamp:"00:21:15",tag:"Địa Kỷ Hóa Giải"},{stars:[],palaces:["Tật Ách"],quote:"Muốn bắt bệnh trên lá số Tử Vi, chớ nhìn ngũ hành thông thường. Hãy tìm cung nào tập trung nhiều sát tinh nhất toàn bàn, lấy Địa Chi của cung đó kết hợp Tử Ngọ Lưu Chú mà đoán tạng phủ nguy nan, bách phát bách trúng.",episode:"Tập 14",timestamp:"00:10:45",tag:"Y Lý Đoán Bệnh"}];function s(t){if(!t)return null;const c=(t.mainStars||[]).map(n=>n.name),g=t.cungName;let h=i.find(n=>n.stars.some(a=>c.includes(a))&&n.palaces.includes(g));return h||(h=i.find(n=>n.stars.some(a=>c.includes(a)))),h||(h=i.find(n=>n.palaces.includes(g))),!h&&(!t.mainStars||t.mainStars.length===0)&&(h=i.find(n=>n.tag==="Linh Hoạt Biến Ảo")),h||(h={quote:"Trong Tử Vi Đẩu Số của Thầy Nghê Hải Hạ: Thiên tạo số mạng một phần, chín phần còn lại là Địa Kỷ phong thủy và Nhân gian đạo. Biết mệnh để thuận thời, hành thiện tích đức tất cải biến họa thành phúc.",episode:"Tập 2",timestamp:"00:08:15",tag:"Nhân Gian Đạo"}),h}
+window.__niQuotes = { list: i, getQuoteForPalace: s };
+})();
+
+
+const STORAGE_KEY = "TUVI_THIEN_KY_OPENSOURCE_PROFILES_V1";
+const DEFAULT_PROFILES = [
+  {
+    id: "demo_male_1990",
+    name: "Đương Số Mẫu (Nam)",
+    relation: "Bản thân (Chủ hộ)",
+    gender: "male",
+    calMode: "solar",
+    solarDay: 15,
+    solarMonth: 8,
+    solarYear: 1990,
+    hourChiIndex: 8,
+    location: "Hà Nội"
+  },
+  {
+    id: "demo_female_1994",
+    name: "Đương Số Mẫu (Nữ)",
+    relation: "Vợ / Phối ngẫu",
+    gender: "female",
+    calMode: "solar",
+    solarDay: 10,
+    solarMonth: 10,
+    solarYear: 1994,
+    hourChiIndex: 3,
+    location: "TP. Hồ Chí Minh"
+  }
+];
+
+let familyMembers = [];
+let currentCalMode = "solar";
+let activeMemberId = "demo_male_1990";
+let currentViewYear = 2026;
+let currentChart = null;
+let selectedChiIndex = 4;
+let currentKhamMode = "love";
+
+function loadMembers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        familyMembers = parsed;
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+  familyMembers = [...DEFAULT_PROFILES];
+}
+
+function resetDefaultProfiles() {
+  localStorage.removeItem(STORAGE_KEY);
+  familyMembers = [...DEFAULT_PROFILES];
+  saveMembers();
+}
+
+function saveMembers() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(familyMembers));
+  renderFamilyList();
+  populateMemberSelects();
+  renderCuuCungGrid();
+}
+
+function setCalMode(mode) {
+  currentCalMode = mode;
+  const bSolar = document.getElementById("btn-cal-solar");
+  const bLunar = document.getElementById("btn-cal-lunar");
+  const leapBox = document.getElementById("lunar-leap-box");
+  if (mode === "solar") {
+    bSolar.className = "px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-bold";
+    bLunar.className = "px-2.5 py-0.5 rounded text-slate-400";
+    leapBox.classList.add("hidden");
+  } else {
+    bLunar.className = "px-2.5 py-0.5 rounded bg-purple-500 text-white font-bold";
+    bSolar.className = "px-2.5 py-0.5 rounded text-slate-400";
+    leapBox.classList.remove("hidden");
+  }
+}
+
+function addAndOpenMember() {
+  const name = (document.getElementById("inp-name").value || "").trim();
+  if (!name) {
+    alert("Vui lòng nhập họ và tên đương số!");
+    return;
+  }
+  const relation = document.getElementById("inp-relation").value;
+  const gender = document.getElementById("inp-gender").value;
+  let day = parseInt(document.getElementById("inp-day").value, 10) || 1;
+  let month = parseInt(document.getElementById("inp-month").value, 10) || 1;
+  let year = parseInt(document.getElementById("inp-year").value, 10) || 1995;
+  const isLeap = document.getElementById("inp-leap").checked;
+  const hourChiIndex = parseInt(document.getElementById("inp-hour-chi").value, 10) || 0;
+  const location = (document.getElementById("inp-location").value || "Hà Nội").trim();
+
+  let sDay = day, sMonth = month, sYear = year;
+  if (currentCalMode === "lunar" && window.__lunar && window.__lunar.lunarToSolar) {
+    const conv = window.__lunar.lunarToSolar(day, month, year, isLeap);
+    if (conv && conv.day) {
+      sDay = conv.day;
+      sMonth = conv.month;
+      sYear = conv.year;
+    }
+  }
+
+  const id = "mem_" + Date.now();
+  const newMember = {
+    id,
+    name,
+    relation,
+    gender,
+    calMode: currentCalMode,
+    solarDay: sDay,
+    solarMonth: sMonth,
+    solarYear: sYear,
+    hourChiIndex,
+    location
+  };
+
+  familyMembers.push(newMember);
+  saveMembers();
+  document.getElementById("inp-name").value = "";
+  viewMemberChart(id);
+}
+
+function removeMember(id) {
+  familyMembers = familyMembers.filter(m => m.id !== id);
+  if (familyMembers.length === 0) {
+    familyMembers = [...DEFAULT_PROFILES];
+  }
+  saveMembers();
+}
+
+function renderFamilyList() {
+  const container = document.getElementById("family-list-container");
+  const badge = document.getElementById("member-count-badge");
+  if (!container) return;
+  if (badge) badge.textContent = familyMembers.length + " hồ sơ";
+
+  container.innerHTML = familyMembers.map(m => {
+    let chartInfo = "";
+    try {
+      const c = window.__tuvi.generateChart({
+        name: m.name,
+        gender: m.gender,
+        solarDay: m.solarDay,
+        solarMonth: m.solarMonth,
+        solarYear: m.solarYear,
+        hourChiIndex: m.hourChiIndex,
+        viewYear: currentViewYear,
+        birthLocation: m.location
+      });
+      const p = c.profile;
+      const menhStars = (c.cungMenh?.mainStars || []).map(s => s.name + (s.brightness ? ` [${s.brightness}]` : "")).join(", ") || "Vô Chính Diệu";
+      chartInfo = `
+        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300 mt-1.5">
+          <span>📅 DL: <strong>${p.solarDate}</strong> (ÂL: <strong>${p.lunarDate}</strong>)</span>
+          <span>⏳ Năm: <strong class="text-amber-300">${p.canChiYear}</strong> • Giờ: <strong>${p.hourName}</strong></span>
+          <span>🔥 Bản mệnh: <strong>${p.banMenh}</strong> (${p.cuc})</span>
+          <span>🌟 Cung Mệnh tại <strong>${p.cungMenhChi}</strong>: <strong class="text-emerald-300">${menhStars}</strong></span>
+        </div>
+      `;
+    } catch (err) {
+      chartInfo = `<div class="text-xs text-rose-400">Lỗi tính lá số: ${err.message}</div>`;
+    }
+
+    return `
+      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 transition flex flex-wrap items-center justify-between gap-3">
+        <div class="space-y-1 flex-1 min-w-[260px]">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-extrabold text-white">${m.name}</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">${m.relation}</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">${m.gender === 'male' ? 'Nam' : 'Nữ'}</span>
+          </div>
+          ${chartInfo}
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="viewMemberChart('${m.id}')" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
+            🌌 Xem Lá Số 12 Cung
+          </button>
+          <button onclick="removeMember('${m.id}')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 text-xs" title="Xóa hồ sơ">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function populateMemberSelects() {
+  const selActive = document.getElementById("sel-active-member");
+  const selP1 = document.getElementById("sel-kham-p1");
+  const selP2 = document.getElementById("sel-kham-p2");
+
+  const opts = familyMembers.map(m => `<option value="${m.id}">${m.name} (${m.relation} — ${m.solarDay}/${m.solarMonth}/${m.solarYear})</option>`).join("");
+  if (selActive) {
+    selActive.innerHTML = opts;
+    selActive.value = activeMemberId;
+  }
+  if (selP1) {
+    selP1.innerHTML = opts;
+    selP1.value = familyMembers[0]?.id || "";
+  }
+  if (selP2) {
+    selP2.innerHTML = opts;
+    selP2.value = familyMembers[1]?.id || familyMembers[0]?.id || "";
+  }
+}
+
+function switchMainTab(tab) {
+  ["family", "chart", "kham-ban", "duong-trach"].forEach(t => {
+    const sec = document.getElementById("sec-" + t);
+    const btn = document.getElementById("tab-btn-" + t);
+    if (!sec || !btn) return;
+    if (t === tab) {
+      sec.classList.remove("hidden");
+      btn.className = "px-3.5 py-2 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow transition";
+    } else {
+      sec.classList.add("hidden");
+      btn.className = "px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+    }
+  });
+  if (tab === "chart") {
+    renderActiveChart();
+    setTimeout(drawTrineLines, 60);
+  } else if (tab === "kham-ban") {
+    runKhamBan();
+  } else if (tab === "duong-trach") {
+    renderCuuCungGrid();
+  }
+}
+
+function viewMemberChart(memberId) {
+  activeMemberId = memberId;
+  const sel = document.getElementById("sel-active-member");
+  if (sel) sel.value = memberId;
+  selectedChiIndex = null;
+  switchMainTab("chart");
+}
+
+function changeViewYear(yr) {
+  currentViewYear = parseInt(yr, 10) || 2026;
+  renderActiveChart();
+  setTimeout(drawTrineLines, 60);
+}
+
+const GRID_POS = {
+  5:  { row: 1, col: 1 }, // Tỵ
+  6:  { row: 1, col: 2 }, // Ngọ
+  7:  { row: 1, col: 3 }, // Mùi
+  8:  { row: 1, col: 4 }, // Thân
+  4:  { row: 2, col: 1 }, // Thìn
+  9:  { row: 2, col: 4 }, // Dậu
+  3:  { row: 3, col: 1 }, // Mão
+  10: { row: 3, col: 4 }, // Tuất
+  2:  { row: 4, col: 1 }, // Dần
+  1:  { row: 4, col: 2 }, // Sửu
+  0:  { row: 4, col: 3 }, // Tý
+  11: { row: 4, col: 4 }  // Hợi
+};
+
+function hoaBadgeClass(hoaObj) {
+  if (!hoaObj) return "";
+  const name = typeof hoaObj === "string" ? hoaObj : (hoaObj.name || "");
+  if (name.includes("Lộc")) return "badge-hoa-loc";
+  if (name.includes("Quyền")) return "badge-hoa-quyen";
+  if (name.includes("Khoa")) return "badge-hoa-khoa";
+  if (name.includes("Kỵ")) return "badge-hoa-ky";
+  return "bg-slate-700";
+}
+
+function renderActiveChart() {
+  const member = familyMembers.find(m => m.id === activeMemberId) || familyMembers[0];
+  const relBadge = document.getElementById("active-member-relation-badge");
+  if (relBadge) relBadge.textContent = `${member.relation} • ${member.location || 'Việt Nam'}`;
+
+  currentChart = window.__tuvi.generateChart({
+    name: member.name,
+    gender: member.gender,
+    solarDay: member.solarDay,
+    solarMonth: member.solarMonth,
+    solarYear: member.solarYear,
+    hourChiIndex: member.hourChiIndex,
+    viewYear: currentViewYear,
+    birthLocation: member.location
+  });
+
+  if (selectedChiIndex === null || selectedChiIndex === undefined) {
+    selectedChiIndex = currentChart.cungMenh ? currentChart.cungMenh.chiIndex : 4;
+  }
+
+  const grid = document.getElementById("chart-grid");
+  if (!grid) return;
+
+  const opp = (selectedChiIndex + 6) % 12;
+  const trine1 = (selectedChiIndex + 4) % 12;
+  const trine2 = (selectedChiIndex + 8) % 12;
+  const clamp1 = (selectedChiIndex + 11) % 12;
+  const clamp2 = (selectedChiIndex + 1) % 12;
+
+  let cellsHtml = `<svg id="svg-overlay"></svg>`;
+
+  const p = currentChart.profile;
+  cellsHtml += `
+    <div class="center-palace flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+          <div>
+            <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold">Mệnh Bàn Tử Vi Đẩu Số Thiên Kỷ</span>
+            <h3 class="text-lg font-black text-white">${p.name} <span class="text-xs font-semibold text-amber-300">(${p.amDuongNamNu || p.amDuong || ''})</span></h3>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs">
+            ${p.cuc}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div><span class="text-slate-400">Dương lịch:</span> <strong class="text-white">${p.solarDate}</strong></div>
+          <div><span class="text-slate-400">Âm lịch:</span> <strong class="text-purple-300">${p.lunarDate} (${p.canChiYear})</strong></div>
+          <div><span class="text-slate-400">Tứ Trụ:</span> <strong class="text-amber-300">${p.tuTru?.text || p.canChiYear}</strong></div>
+          <div><span class="text-slate-400">Giờ sinh:</span> <strong class="text-emerald-300">${p.hourName}</strong></div>
+          <div><span class="text-slate-400">Bản Mệnh:</span> <strong class="text-white">${p.banMenh}</strong></div>
+          <div><span class="text-slate-400">Mệnh / Thân:</span> <strong class="text-amber-200">Mệnh ${p.cungMenhChi} • ${p.thanCuText || ('Thân ' + p.cungThanChi)}</strong></div>
+          <div><span class="text-slate-400">Chủ Mệnh / Thân:</span> <strong class="text-sky-300">${p.chuMenh || ''} / ${p.chuThan || ''}</strong></div>
+          <div><span class="text-slate-400">Lai Nhân Cung:</span> <strong class="text-rose-300">${p.laiNhanFull || ''}</strong></div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 pt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Bản cung</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Đối cung</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-300 inline-block"></span> Tam hợp</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Giáp cung</span>
+        </div>
+        <span>Lưu niên: <strong class="text-amber-300">${p.viewYear} (${p.viewYearCanChi || ''})</strong></span>
+      </div>
+    </div>
+  `;
+
+  (currentChart.cungList || []).forEach(c => {
+    const pos = GRID_POS[c.chiIndex] || { row: 1, col: 1 };
+    const isMenh = c.cungName === "Mệnh";
+    const isThan = c.isThan;
+    let cls = "palace-cell";
+    if (c.chiIndex === selectedChiIndex) cls += " active-main";
+    else if (c.chiIndex === opp) cls += " active-opposite";
+    else if (c.chiIndex === trine1 || c.chiIndex === trine2) cls += " active-trine";
+    else if (c.chiIndex === clamp1 || c.chiIndex === clamp2) cls += " active-clamp";
+
+    const mainStarsHtml = (c.mainStars || []).length
+      ? c.mainStars.map(s => `
+          <div class="flex items-center justify-between gap-1 text-xs font-extrabold ${s.element==='Hỏa'?'text-rose-400':s.element==='Kim'?'text-amber-200':s.element==='Thủy'?'text-sky-300':s.element==='Mộc'?'text-emerald-300':'text-yellow-300'}">
+            <span>★ ${s.name} <span class="text-[10px] opacity-75">[${s.brightness || 'Bình'}]</span></span>
+            ${s.hoa ? `<span class="text-[10px] px-1.5 py-0.2 rounded ${hoaBadgeClass(s.hoa)}">${s.hoa.name || s.hoa}</span>` : ''}
+          </div>
+        `).join("")
+      : `<div class="text-[11px] italic text-slate-500">Vô Chính Diệu (Mượn đối cung)</div>`;
+
+    const goodStars = (c.goodStars || []).map(s => `
+      <span class="inline-block text-[10px] px-1 rounded ${s.isLuu ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'text-emerald-400'}">
+        ${s.name}${s.brightness ? `[${s.brightness}]` : ''}${s.hoa ? `(${s.hoa.name || s.hoa})` : ''}
+      </span>
+    `).join(" ");
+
+    const badStars = (c.badStars || []).map(s => `
+      <span class="inline-block text-[10px] px-1 rounded ${s.isLuu ? 'bg-rose-950/80 text-rose-300 border border-rose-500/30' : 'text-rose-400/90'}">
+        ${s.name}${s.brightness ? `[${s.brightness}]` : ''}${s.hoa ? `(${s.hoa.name || s.hoa})` : ''}
+      </span>
+    `).join(" ");
+
+    cellsHtml += `
+      <div class="${cls}" id="palace-cell-${c.chiIndex}" style="grid-row:${pos.row};grid-column:${pos.col};"
+           onclick="selectPalace(${c.chiIndex})">
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-1 mb-1">
+            <div class="flex items-center gap-1">
+              <span class="text-xs font-extrabold uppercase ${isMenh ? 'text-amber-400' : 'text-white'}">${c.cungName}</span>
+              ${isMenh ? '<span class="px-1 py-0.2 rounded bg-amber-500 text-slate-950 font-black text-[9px]">MỆNH</span>' : ''}
+              ${isThan ? '<span class="px-1 py-0.2 rounded bg-sky-500 text-slate-950 font-black text-[9px]">THÂN</span>' : ''}
+            </div>
+            <span class="text-[10px] font-semibold text-amber-300">ĐV: ${c.daiHan || ''}</span>
+          </div>
+          <div class="space-y-0.5 my-1 min-h-[34px]">${mainStarsHtml}</div>
+          <div class="mt-1 leading-snug flex flex-wrap gap-1">${goodStars}</div>
+          <div class="mt-0.5 leading-snug flex flex-wrap gap-1">${badStars}</div>
+        </div>
+        <div class="border-t border-slate-800/80 pt-1 mt-2 flex items-center justify-between text-[10px] text-slate-400">
+          <span class="font-mono text-slate-300">${c.canChi}</span>
+          <span>TH: ${c.tieuHanChi || ''}</span>
+          <span class="text-amber-300/80">${c.vongTruongSinh || ''}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  grid.innerHTML = cellsHtml;
+  renderPalaceDetail(selectedChiIndex);
+  renderAutoAnalysis();
+}
+
+function selectPalace(chiIdx) {
+  selectedChiIndex = chiIdx;
+  renderActiveChart();
+  setTimeout(drawTrineLines, 30);
+}
+
+function drawTrineLines() {
+  const svg = document.getElementById("svg-overlay");
+  const grid = document.getElementById("chart-grid");
+  if (!svg || !grid || selectedChiIndex === null) return;
+  const gRect = grid.getBoundingClientRect();
+  if (gRect.width === 0) return;
+
+  const centerOf = (idx) => {
+    const el = document.getElementById("palace-cell-" + idx);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      x: r.left - gRect.left + r.width / 2,
+      y: r.top - gRect.top + r.height / 2
+    };
+  };
+
+  const pMain = centerOf(selectedChiIndex);
+  const pOpp = centerOf((selectedChiIndex + 6) % 12);
+  const pT1 = centerOf((selectedChiIndex + 4) % 12);
+  const pT2 = centerOf((selectedChiIndex + 8) % 12);
+  if (!pMain) return;
+
+  let lines = "";
+  if (pOpp) {
+    lines += `<line x1="${pMain.x}" y1="${pMain.y}" x2="${pOpp.x}" y2="${pOpp.y}" stroke="rgba(244,63,94,0.75)" stroke-width="2.2" stroke-dasharray="6,4" />`;
+  }
+  if (pT1 && pT2) {
+    lines += `<polygon points="${pMain.x},${pMain.y} ${pT1.x},${pT1.y} ${pT2.x},${pT2.y}" fill="rgba(245,158,11,0.04)" stroke="rgba(251,191,36,0.65)" stroke-width="1.8" stroke-dasharray="4,4" />`;
+  }
+  svg.innerHTML = lines;
+}
+
+window.addEventListener("resize", drawTrineLines);
+
+function renderPalaceDetail(chiIdx) {
+  const box = document.getElementById("palace-detail-box");
+  if (!box || !currentChart) return;
+  const c = currentChart.cungList[chiIdx];
+  if (!c) return;
+
+  const opp = currentChart.cungList[(chiIdx + 6) % 12];
+  const t1 = currentChart.cungList[(chiIdx + 4) % 12];
+  const t2 = currentChart.cungList[(chiIdx + 8) % 12];
+  const quoteObj = window.__niQuotes?.getQuoteForPalace ? window.__niQuotes.getQuoteForPalace(c.cungName, (c.mainStars || []).map(s => s.name)) : null;
+
+  const mainList = (c.mainStars || []).map(s => `${s.name} [${s.brightness || 'Bình'}]${s.hoa ? ' (' + (s.hoa.name || s.hoa) + ')' : ''}`).join(", ") || "Vô Chính Diệu (Mượn đối cung)";
+  const oppStars = (opp?.mainStars || []).map(s => `${s.name} [${s.brightness || 'Bình'}]`).join(", ") || "Vô Chính Diệu";
+
+  box.innerHTML = `
+    <div class="border-b border-slate-800 pb-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-amber-400">Cung ${c.canChi} • Đại vận ${c.daiHan} tuổi</span>
+        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-xs font-bold">${c.cungName}</span>
+      </div>
+      <h3 class="text-lg font-black text-white mt-1">
+        Cung ${c.cungName} tại ${c.chiName} ${c.isThan ? '<span class="text-xs text-sky-300">(Thân Cung)</span>' : ''}
+      </h3>
+    </div>
+
+    <div class="space-y-2.5 text-xs">
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-slate-400 mb-0.5">🌟 Chính tinh tọa thủ:</div>
+        <div class="font-bold text-amber-300 text-sm">${mainList}</div>
+        ${(c.mainStars || []).length === 0 ? `<div class="text-rose-300 mt-1">↪ Mượn chính tinh cung xung chiếu (${opp?.cungName} tại ${opp?.chiName}): <strong>${oppStars}</strong></div>` : ''}
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-slate-400">Cát tinh / Phụ tinh:</div>
+          <div class="text-emerald-300 font-semibold mt-0.5">${(c.goodStars || []).map(s => s.name).join(", ") || "Không có"}</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-slate-400">Sát tinh / Hình tinh:</div>
+          <div class="text-rose-400 font-semibold mt-0.5">${(c.badStars || []).map(s => s.name).join(", ") || "Không có"}</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="font-bold text-sky-300">🔗 Tam Phương Tứ Chính:</div>
+        <div>• <strong>Đối cung (${opp?.chiName} - ${opp?.cungName}):</strong> ${oppStars}</div>
+        <div>• <strong>Tam hợp 1 (${t1?.chiName} - ${t1?.cungName}):</strong> ${(t1?.mainStars || []).map(s => s.name).join(", ") || "Vô Chính Diệu"}</div>
+        <div>• <strong>Tam hợp 2 (${t2?.chiName} - ${t2?.cungName}):</strong> ${(t2?.mainStars || []).map(s => s.name).join(", ") || "Vô Chính Diệu"}</div>
+      </div>
+
+      ${quoteObj && quoteObj.quote ? `
+        <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1">
+          <div class="flex justify-between text-[11px] font-bold text-amber-300">
+            <span>📜 Khẩu Quyết Đại Sư Nghê Hải Hạ:</span>
+            <span>${quoteObj.episode || ''} ${quoteObj.timestamp || ''}</span>
+          </div>
+          <p class="text-slate-200 italic leading-relaxed">"${quoteObj.quote}"</p>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderAutoAnalysis() {
+  const container = document.getElementById("auto-analysis-container");
+  if (!container || !currentChart || !window.__tuvi.analyzeChart) return;
+  const res = window.__tuvi.analyzeChart(currentChart) || {};
+  const items = [
+    { title: "1. Tổng Quan Cách Cục & Tiên Thiên", content: res.overview || "" },
+    { title: "2. Sự Nghiệp & Quan Lộc", content: res.career || "" },
+    { title: "3. Tài Bạch & Quản Trị Dòng Tiền", content: res.wealth || "" },
+    { title: "4. Hôn Nhân & Gia Đạo", content: res.love || "" },
+    { title: "5. Vận Hạn & Lời Khuyên Hành Động", content: res.forecast || "" }
+  ];
+  container.innerHTML = items.map(sec => `
+    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+      <h4 class="font-extrabold text-sm text-amber-300 border-b border-slate-800 pb-1.5">${sec.title}</h4>
+      <div class="text-slate-300 leading-relaxed whitespace-pre-line max-h-60 overflow-y-auto pr-1">${sec.content}</div>
+    </div>
+  `).join("");
+}
+
+// KHẢM BÀN HỢP TUỔI (4 TRỤ CỘT 100 ĐIỂM)
+const NGU_HANH_REL = {
+  Kim: { sinh: "Thủy", sinhBoi: "Thổ", khac: "Mộc", biKhac: "Hỏa" },
+  Mộc: { sinh: "Hỏa", sinhBoi: "Thủy", khac: "Thổ", biKhac: "Kim" },
+  Thủy: { sinh: "Mộc", sinhBoi: "Kim", khac: "Hỏa", biKhac: "Thổ" },
+  Hỏa: { sinh: "Thổ", sinhBoi: "Mộc", khac: "Kim", biKhac: "Thủy" },
+  Thổ: { sinh: "Kim", sinhBoi: "Hỏa", khac: "Thủy", biKhac: "Mộc" }
+};
+const TAM_HOP = [["Thân","Tý","Thìn"],["Dần","Ngọ","Tuất"],["Tỵ","Dậu","Sửu"],["Hợi","Mão","Mùi"]];
+const LUC_HOP = { Tý:"Sửu", Sửu:"Tý", Dần:"Hợi", Hợi:"Dần", Mão:"Tuất", Tuất:"Mão", Thìn:"Dậu", Dậu:"Thìn", Tỵ:"Thân", Thân:"Tỵ", Ngọ:"Mùi", Mùi:"Ngọ" };
+const TU_XUNG = [["Tý","Ngọ","Mão","Dậu"],["Dần","Thân","Tỵ","Hợi"],["Thìn","Tuất","Sửu","Mùi"]];
+const TU_HOA_BY_CAN = {
+  Giáp: { loc:"Liêm Trinh", quyen:"Phá Quân", khoa:"Vũ Khúc", ky:"Thái Dương" },
+  Ất:   { loc:"Thiên Cơ", quyen:"Thiên Lương", khoa:"Tử Vi", ky:"Thái Âm" },
+  Bính: { loc:"Thiên Đồng", quyen:"Thiên Cơ", khoa:"Văn Xương", ky:"Liêm Trinh" },
+  Đinh: { loc:"Thái Âm", quyen:"Thiên Đồng", khoa:"Thiên Cơ", ky:"Cự Môn" },
+  Mậu:  { loc:"Tham Lang", quyen:"Thái Âm", khoa:"Hữu Bật", ky:"Thiên Cơ" },
+  Kỷ:   { loc:"Vũ Khúc", quyen:"Tham Lang", khoa:"Thiên Lương", ky:"Văn Khúc" },
+  Canh: { loc:"Thái Dương", quyen:"Vũ Khúc", khoa:"Thái Âm", ky:"Thiên Đồng" },
+  Tân:  { loc:"Cự Môn", quyen:"Thái Dương", khoa:"Văn Khúc", ky:"Văn Xương" },
+  Nhâm: { loc:"Thiên Lương", quyen:"Tử Vi", khoa:"Tả Phụ", ky:"Vũ Khúc" },
+  Quý:  { loc:"Phá Quân", quyen:"Cự Môn", khoa:"Thái Âm", ky:"Tham Lang" }
+};
+
+function setKhamMode(mode) {
+  currentKhamMode = mode;
+  ["love", "parent_child", "business"].forEach(m => {
+    const btn = document.getElementById("kham-mode-" + m);
+    if (btn) {
+      btn.className = m === mode
+        ? "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white"
+        : "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300";
+    }
+  });
+  runKhamBan();
+}
+
+function runKhamBan() {
+  const id1 = document.getElementById("sel-kham-p1")?.value || familyMembers[0]?.id;
+  const id2 = document.getElementById("sel-kham-p2")?.value || (familyMembers[1]?.id || familyMembers[0]?.id);
+  const m1 = familyMembers.find(m => m.id === id1) || familyMembers[0];
+  const m2 = familyMembers.find(m => m.id === id2) || (familyMembers[1] || familyMembers[0]);
+
+  if (!m1 || !m2) return;
+
+  const c1 = window.__tuvi.generateChart({
+    name: m1.name, gender: m1.gender, solarDay: m1.solarDay, solarMonth: m1.solarMonth, solarYear: m1.solarYear, hourChiIndex: m1.hourChiIndex
+  });
+  const c2 = window.__tuvi.generateChart({
+    name: m2.name, gender: m2.gender, solarDay: m2.solarDay, solarMonth: m2.solarMonth, solarYear: m2.solarYear, hourChiIndex: m2.hourChiIndex
+  });
+
+  const o = c1.profile, r = c2.profile;
+  const [can1 = "Giáp", chi1 = "Tuất"] = (o.canChiYear || "").trim().split(/\s+/);
+  const [can2 = "Ất", chi2 = "Hợi"] = (r.canChiYear || "").trim().split(/\s+/);
+  const el1 = o.banMenhElement || (o.banMenh || "").split(" ").pop() || "Hỏa";
+  const el2 = r.banMenhElement || (r.banMenh || "").split(" ").pop() || "Hỏa";
+
+  // 1. Ngũ hành
+  let s1 = 20, d1 = "";
+  if (el1 === el2) {
+    s1 = 21;
+    d1 = `Lưỡng ${el1} tỷ hòa (${o.name}: ${o.banMenh}, ${r.name}: ${r.banMenh}). Hai người dễ đồng cảm, chung tần số suy nghĩ.`;
+  } else if (NGU_HANH_REL[el1]?.sinh === el2) {
+    s1 = 25;
+    d1 = `${o.name} (${o.banMenh} - ${el1}) tương sinh nuôi dưỡng trực tiếp cho ${r.name} (${r.banMenh} - ${el2}). Năng lượng gia đạo ấm áp, ${o.name} luôn nâng đỡ và đem lại phúc khí cho ${r.name}.`;
+  } else if (NGU_HANH_REL[el2]?.sinh === el1) {
+    s1 = 25;
+    d1 = `${r.name} (${r.banMenh} - ${el2}) tương sinh trợ lực cho ${o.name} (${o.banMenh} - ${el1}). ${r.name} chính là hậu phương vượng khí tiếp sức cho ${o.name}.`;
+  } else {
+    s1 = 15;
+    d1 = `Ngũ hành ${el1} và ${el2} có tính chế hóa/khắc nhẹ. Trong sinh hoạt cần tôn trọng góc nhìn riêng và dùng Phong thủy Dương Trạch (Địa Kỷ) để thông quan.`;
+  }
+
+  // 2. Địa chi
+  let s2 = 18, d2 = "";
+  const isLucHop = LUC_HOP[chi1] === chi2;
+  const isTamHop = TAM_HOP.some(g => g.includes(chi1) && g.includes(chi2));
+  const isTuXung = TU_XUNG.some(g => g.includes(chi1) && g.includes(chi2)) && chi1 !== chi2;
+  if (isLucHop) {
+    s2 = 25;
+    d2 = `Địa Chi ${chi1} và ${chi2} đắc Lục Hợp (Nhị Hợp cát tường) — duyên nợ gắn kết bền chặt tự nhiên.`;
+  } else if (isTamHop) {
+    s2 = 24;
+    d2 = `Địa Chi ${chi1} và ${chi2} nằm trong Tam Hợp Cục — đồng tâm hiệp lực, càng đi đường dài càng đại vượng.`;
+  } else if (isTuXung) {
+    s2 = 14;
+    d2 = `Địa Chi ${chi1} và ${chi2} nằm trong nhóm Tứ Hành Xung — tính cách có lúc đối nghịch, cần bao dung khi trao đổi.`;
+  } else {
+    s2 = 19;
+    d2 = `Địa Chi ${chi1} và ${chi2} bình hòa ổn định, mưa dầm thấm lâu.`;
+  }
+
+  // 3. Cung vị tương phối
+  const mStars1 = (c1.cungMenh?.mainStars || []).map(s => s.name);
+  const mStars2 = (c2.cungMenh?.mainStars || []).map(s => s.name);
+  const allOverlap = (c1.cungList || []).filter(p1 => {
+    const p2 = (c2.cungList || [])[p1.chiIndex];
+    const st1 = (p1.mainStars || []).map(s => s.name);
+    const st2 = (p2?.mainStars || []).map(s => s.name);
+    return st1.some(s => mStars2.includes(s)) || st2.some(s => mStars1.includes(s));
+  });
+
+  let s3 = 20, d3 = "";
+  if (allOverlap.length > 0) {
+    s3 = 24;
+    d3 = `Khảm Bàn trùng khớp chính tinh giữa hai lá số (${mStars1.join(", ") || "Vô Chính Diệu"} ↔ ${mStars2.join(", ") || "Vô Chính Diệu"}), tạo sự gắn kết tự nhiên theo thuật Khảm Bàn Thiên Kỷ.`;
+  } else {
+    s3 = 20;
+    d3 = `Chính tinh hai bên (${mStars1.join(", ") || "Vô Chính Diệu"} ↔ ${mStars2.join(", ") || "Vô Chính Diệu"}) mang tính bổ khuyết âm dương cho nhau.`;
+  }
+
+  // 4. Tứ hóa phi cung
+  const th1 = TU_HOA_BY_CAN[can1] || TU_HOA_BY_CAN["Giáp"];
+  const th2 = TU_HOA_BY_CAN[can2] || TU_HOA_BY_CAN["Ất"];
+  let s4 = 22;
+  let d4 = `Can ${can1} của ${o.name} có Hóa Lộc tại ${th1.loc}, Hóa Quyền tại ${th1.quyen}, Hóa Khoa tại ${th1.khoa}. Can ${can2} của ${r.name} có Hóa Lộc tại ${th2.loc}, Hóa Quyền tại ${th2.quyen}, Hóa Khoa tại ${th2.khoa}. Hai luồng Tứ Hóa giao thoa bổ khuyết sinh khí!`;
+
+  const total = s1 + s2 + s3 + s4;
+  const box = document.getElementById("kham-ban-result-box");
+  if (!box) return;
+  box.innerHTML = `
+    <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-rose-950/20 to-slate-950 border border-rose-500/30 text-center space-y-2">
+      <div class="text-xs uppercase tracking-widest text-slate-400">Tổng Điểm Khảm Bàn Thiên Kỷ (${o.name} ↔ ${r.name})</div>
+      <div class="text-5xl font-black text-amber-300">${total} <span class="text-lg text-slate-400">/ 100</span></div>
+      <div class="text-xs font-bold text-emerald-300">
+        ${total >= 86 ? '🌟 Đại Cát • Thiên Tác Chi Hợp (Rất Hòa Hợp)' : total >= 75 ? '✨ Cát Lành • Tương Hỗ Đắc Cách (Tốt)' : '⚖️ Bình Hòa • Dùng Dương Trạch Địa Kỷ Để Bổ Khuyết'}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="flex justify-between font-bold text-amber-300"><span>1. Ngũ Hành & Cục Số</span><span>${s1} / 25 đ</span></div>
+        <p class="text-slate-300">${d1}</p>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="flex justify-between font-bold text-amber-300"><span>2. Địa Chi & Tam Hợp Cục</span><span>${s2} / 25 đ</span></div>
+        <p class="text-slate-300">${d2}</p>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="flex justify-between font-bold text-amber-300"><span>3. Khảm Bàn Tương Phối Cung Vị</span><span>${s3} / 25 đ</span></div>
+        <p class="text-slate-300">${d3}</p>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="flex justify-between font-bold text-amber-300"><span>4. Khí Vận Tứ Hóa Phi Cung</span><span>${s4} / 25 đ</span></div>
+        <p class="text-slate-300">${d4}</p>
+      </div>
+    </div>
+  `;
+}
+
+// ĐỒ HÌNH CỬU CUNG DƯƠNG TRẠCH ĐỊA KỶ NGHÊ HẢI HẠ
+const CUU_CUNG_SPEC = [
+  { dir: "Đông Nam (Tốn Vi Phong)", role: "Trưởng nữ (Con gái đầu)", matchKey: "Trưởng nữ", desc: "Vị trí của Trưởng nữ. Gió tính nhu hòa, con gái đầu ngủ cung Đông Nam thì học hành thông tuệ, tính tình điềm đạm, hiếu thảo." },
+  { dir: "Chính Nam (Ly Vi Hỏa)", role: "Thứ nữ (Con gái thứ 2)", matchKey: "Thứ/Út nữ", desc: "Vị trí của Thứ nữ. Quẻ Ly chủ về văn minh, sáng suốt, giúp con gái thứ phát triển trí tuệ và nghệ thuật." },
+  { dir: "Tây Nam (Khôn Vi Địa)", role: "Người Mẹ / Nữ Chủ Nhân", matchKey: "Vợ", desc: "Vị trí của Người Vợ / Mẹ. Đất dày chở vật (Hậu đức tải vật), giúp nữ chủ nhân khỏe mạnh, quán xuyến nội trợ và tài chính êm ấm." },
+  { dir: "Chính Đông (Chấn Vi Lôi)", role: "Trưởng nam (Con trai đầu)", matchKey: "Trưởng nam", desc: "Vị trí của Trưởng nam. Sấm động phương Đông giúp con trai đầu có chí khí vươn lên, quyết đoán và kế thừa sự nghiệp." },
+  { dir: "Trung Cung (Tâm Nhà)", role: "Phòng Khách / Không Gian Chung", matchKey: "__CENTER__", desc: "Trái tim của ngôi nhà: Phải giữ thông thoáng, sáng sủa, tuyệt đối tránh đặt nhà vệ sinh hoặc bếp nấu ngay chính giữa Trung cung." },
+  { dir: "Chính Tây (Đoài Vi Trạch)", role: "Út nữ (Con gái út)", matchKey: "Út nữ", desc: "Vị trí của Con gái út. Quẻ Đoài chủ về niềm vui, khẩu tài và sự hòa duyệt." },
+  { dir: "Đông Bắc (Cấn Vi Sơn)", role: "Út nam (Con trai út)", matchKey: "Út nam", desc: "Vị trí của Con trai út. Núi vững chãi giúp con trai út điềm tĩnh, tích lũy kiến thức vững vàng." },
+  { dir: "Chính Bắc (Khảm Vi Thủy)", role: "Thứ nam (Con trai thứ 2)", matchKey: "Thứ nam", desc: "Vị trí của Con trai thứ 2. Thủy chủ trí tuệ sâu sắc, giúp con trai thứ thông minh và linh hoạt." },
+  { dir: "Tây Bắc (Càn Vi Thiên)", role: "Chủ Hộ & Vợ (Quẻ Địa Thiên Thái)", matchKey: "Chủ hộ", desc: "Vị trí tối quan trọng của Chủ hộ & Vợ! Hai vợ chồng cùng ngủ phương Tây Bắc đắc quẻ Địa Thiên Thái — sự nghiệp và gia đạo đại vượng." }
+];
+
+function renderCuuCungGrid() {
+  const grid = document.getElementById("cuu-cung-grid");
+  if (!grid) return;
+  grid.innerHTML = CUU_CUNG_SPEC.map(c => {
+    let matched = [];
+    if (c.matchKey === "Chủ hộ") {
+      matched = familyMembers.filter(m => m.relation.includes("Chủ hộ") || m.relation.includes("Bản thân") || m.relation.includes("Vợ"));
+    } else if (c.matchKey !== "__CENTER__") {
+      matched = familyMembers.filter(m => m.relation.includes(c.matchKey));
+    }
+    return `
+      <div class="p-4 rounded-xl ${c.matchKey === 'Chủ hộ' ? 'bg-amber-950/30 border-2 border-amber-500' : 'bg-slate-950 border border-slate-800'} space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span class="font-extrabold text-sm text-amber-300">${c.dir}</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">${c.role}</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">${c.desc}</p>
+        <div class="pt-1">
+          <span class="text-[11px] text-slate-400">Hồ sơ ứng cung:</span>
+          <div class="flex flex-wrap gap-1 mt-1">
+            ${matched.length ? matched.map(m => `<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">👤 ${m.name}</span>`).join("") : '<span class="text-xs text-slate-500 italic">Chưa gán</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function copyCliCommandForActive() {
+  const m = familyMembers.find(x => x.id === activeMemberId) || familyMembers[0];
+  const cmd = `python scripts/tuvi_cli.py --name "${m.name}" --gender ${m.gender} --day ${m.solarDay} --month ${m.solarMonth} --year ${m.solarYear} --hour-idx ${m.hourChiIndex} --province "${m.location}"`;
+  navigator.clipboard.writeText(cmd);
+  alert("Đã copy lệnh CLI trích xuất kho 56.6 GB (v4.0-13d):\n\n" + cmd);
+}
+
+function exportFamilyJSON() {
+  const blob = new Blob([JSON.stringify(familyMembers, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "TUVI_PROFILES_EXPORT.json";
+  a.click();
+}
+
+function importFamilyJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const arr = JSON.parse(ev.target.result);
+      if (Array.isArray(arr)) {
+        familyMembers = arr;
+        saveMembers();
+        alert("Đã nạp thành công " + arr.length + " hồ sơ!");
+      }
+    } catch (err) {
+      alert("File JSON không hợp lệ!");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// KHỞI ĐỘNG
+loadMembers();
+renderFamilyList();
+populateMemberSelects();
+renderCuuCungGrid();
+</script>
+</body>
+</html>

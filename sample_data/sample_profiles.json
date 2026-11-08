@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sample_01",
+    "name": "Đương Số Mẫu (Nam)",
+    "relation": "Bản thân (Chủ hộ)",
+    "gender": "male",
+    "calMode": "solar",
+    "solarDay": 15,
+    "solarMonth": 8,
+    "solarYear": 1990,
+    "hourChiIndex": 8,
+    "location": "Hà Nội"
+  },
+  {
+    "id": "sample_02",
+    "name": "Đương Số Mẫu (Nữ)",
+    "relation": "Vợ / Phối ngẫu",
+    "gender": "female",
+    "calMode": "solar",
+    "solarDay": 10,
+    "solarMonth": 10,
+    "solarYear": 1994,
+    "hourChiIndex": 3,
+    "location": "TP. Hồ Chí Minh"
+  },
+  {
+    "id": "sample_03",
+    "name": "Con Trai Đầu (Mẫu)",
+    "relation": "Con trai (Trưởng nam)",
+    "gender": "male",
+    "calMode": "solar",
+    "solarDay": 1,
+    "solarMonth": 6,
+    "solarYear": 2020,
+    "hourChiIndex": 4,
+    "location": "Đà Nẵng"
+  }
+]

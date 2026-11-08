@@ -1,0 +1,62 @@
+# ========================================================
+# GitIgnore for Tu Vi Thien Ky Web App & CLI Toolkit
+# Strictly protects user privacy & prevents uploading personal data
+# ========================================================
+
+# Personal Profiles & Sensitive Folders
+01_*
+02_*
+03_*
+04_*
+*personal*
+*private*
+*chu_ho*
+*vo_*
+*baotu*
+*ngodieulinh*
+HO_SO_*.json
+*.private.json
+
+# Audio & Media Files (Large files & voice synthesis)
+*.mp3
+*.wav
+*.aac
+*.m4a
+*.flac
+*.ogg
+
+# Large Datasets & Cache
+*.zst
+*.jsonl
+cache_v4_13d/
+cache/
+downloads/
+raw_data/
+*.tar.gz
+*.zip
+
+# Python & Node Artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
+.env
+.env.*
+*.key
+*.token
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.vscode/
+.idea/
